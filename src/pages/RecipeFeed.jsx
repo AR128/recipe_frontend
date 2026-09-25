@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router';
 import RecipeCard from '../components/RecipeCard';
+import FoodieCard from '../components/FoodieCard';
 import { getRecipes, getCategories, searchUsers } from '../api/recipeApi';
 import useWindowWidth from '../hooks/useWindowWidth';
+import Hero from '../components/Hero';
+import FeaturedRecipe from '../components/FeaturedRecipe';
 
 function useDebounce(value, delay) {
     const [debounced, setDebounced] = useState(value);
@@ -45,10 +47,13 @@ function RecipeFeed() {
     const [search, setSearch] = useState('');
     const [searchTab, setSearchTab] = useState('recipes'); // 'recipes' | 'users'
     const [matchedUsers, setMatchedUsers] = useState([]);
+    const [featuredChefs, setFeaturedChefs] = useState([]);
     const [usersLoading, setUsersLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [total, setTotal] = useState(0);
+    const [sortBy, setSortBy] = useState('Newest');
+    const [showSortMenu, setShowSortMenu] = useState(false);
     const searchRef = useRef(null);
 
     const debouncedSearch = useDebounce(search, 400);
@@ -58,9 +63,17 @@ function RecipeFeed() {
         getCategories()
             .then((data) => {
                 const cats = (data.categories || []).filter(Boolean);
-                setCategories(['All', ...cats]);
+                setCategories(['All', 'Quick & Easy', 'Vegan', 'Techniques', ...cats]);
             })
             .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        searchUsers('')
+            .then((data) => {
+                setFeaturedChefs((data.users || []).slice(0, 4));
+            })
+            .catch(() => setFeaturedChefs([]));
     }, []);
 
     const [prevFilters, setPrevFilters] = useState({ search: null, category: null });
@@ -113,173 +126,17 @@ function RecipeFeed() {
                 background: 'var(--color-bg)',
             }}
         >
-            {/* Hero */}
-            <div
-                style={{
-                    background: 'var(--color-surface)',
-                    borderBottom: '1px solid var(--color-border)',
-                    padding: isMobile ? '36px 16px 32px' : '60px 20px 48px',
-                    textAlign: 'center',
-                }}
-            >
-                <div style={{ maxWidth: 640, margin: '0 auto' }}>
-                    <h1
-                        className="font-display animate-fade-in"
-                        style={{
-                            fontSize: 'clamp(26px, 5vw, 54px)',
-                            fontWeight: 700,
-                            color: 'var(--color-text-primary)',
-                            margin: '0 0 12px',
-                            lineHeight: 1.15,
-                        }}
-                    >
-                        Discover{' '}
-                        <span style={{ color: 'var(--color-accent)' }}>Delicious</span>
-                        {' '}Recipes
-                    </h1>
-                    <p
-                        className="animate-fade-in"
-                        style={{
-                            fontSize: isMobile ? 14 : 16,
-                            color: 'var(--color-text-secondary)',
-                            margin: '0 0 28px',
-                            lineHeight: 1.6,
-                            animationDelay: '0.05s',
-                        }}
-                    >
-                        From quick weeknight dinners to show-stopping desserts — find your next favourite meal.
-                    </p>
-
-                    {/* Search bar */}
-                    <div
-                        className="animate-fade-in"
-                        style={{
-                            position: 'relative',
-                            maxWidth: 480,
-                            margin: '0 auto',
-                            animationDelay: '0.1s',
-                        }}
-                    >
-                        <div
-                            style={{
-                                position: 'absolute',
-                                left: 16,
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                color: 'var(--color-text-muted)',
-                                pointerEvents: 'none',
-                            }}
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                                <circle cx="11" cy="11" r="8"/>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                            </svg>
-                        </div>
-                        <input
-                            id="recipe-search-input"
-                            ref={searchRef}
-                            type="search"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search recipes, tags, or chefs..."
-                            style={{
-                                width: '100%',
-                                paddingLeft: 46,
-                                paddingRight: search ? 40 : 16,
-                                paddingTop: 13,
-                                paddingBottom: 13,
-                                fontSize: 15,
-                                background: 'var(--color-bg)',
-                                border: '1.5px solid var(--color-border)',
-                                borderRadius: 50,
-                                color: 'var(--color-text-primary)',
-                                outline: 'none',
-                                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                                fontFamily: "'Inter', sans-serif",
-                            }}
-                            onFocus={(e) => {
-                                e.target.style.borderColor = 'var(--color-accent)';
-                                e.target.style.boxShadow = '0 0 0 3px rgba(220, 76, 76, 0.12)';
-                            }}
-                            onBlur={(e) => {
-                                e.target.style.borderColor = 'var(--color-border)';
-                                e.target.style.boxShadow = 'none';
-                            }}
-                        />
-                        {search && (
-                            <button
-                                onClick={() => { setSearch(''); searchRef.current?.focus(); }}
-                                aria-label="Clear search"
-                                style={{
-                                    position: 'absolute',
-                                    right: 14,
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    color: 'var(--color-text-muted)',
-                                    padding: 2,
-                                    display: 'flex',
-                                }}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                </svg>
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Search Type Tabs */}
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            flexWrap: 'wrap',
-                            gap: 10,
-                            marginTop: 16,
-                        }}
-                    >
-                        <button
-                            type="button"
-                            onClick={() => setSearchTab('recipes')}
-                            style={{
-                                padding: isMobile ? '7px 14px' : '6px 16px',
-                                borderRadius: 20,
-                                border: '1px solid var(--color-border)',
-                                background: searchTab === 'recipes' ? 'var(--color-accent)' : 'var(--color-bg)',
-                                color: searchTab === 'recipes' ? '#fff' : 'var(--color-text-secondary)',
-                                fontSize: isMobile ? 12 : 13,
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            🍲 Recipes
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setSearchTab('users')}
-                            style={{
-                                padding: isMobile ? '7px 14px' : '6px 16px',
-                                borderRadius: 20,
-                                border: '1px solid var(--color-border)',
-                                background: searchTab === 'users' ? 'var(--color-accent)' : 'var(--color-bg)',
-                                color: searchTab === 'users' ? '#fff' : 'var(--color-text-secondary)',
-                                fontSize: isMobile ? 12 : 13,
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            👨‍🍳 Foodies {matchedUsers.length > 0 && `(${matchedUsers.length})`}
-                        </button>
-                    </div>
-                </div>
-            </div>
+        
+           {/* Hero */}
+      <Hero 
+        search={search}
+        setSearch={setSearch}
+        searchRef={searchRef}
+        searchTab={searchTab}
+        setSearchTab={setSearchTab}
+        matchedUsers={matchedUsers}
+      />
+    
 
             {/* Feed body */}
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '24px 14px 48px' : '36px 20px 60px' }}>
@@ -319,120 +176,67 @@ function RecipeFeed() {
                             </div>
                         ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, 260px), 1fr))`, gap: 16 }}>
-                                {matchedUsers.map((u) => {
-                                    const initials = (u.name || u.username || '?').slice(0, 2).toUpperCase();
-                                    return (
-                                        <Link
-                                            key={u._id}
-                                            to={`/user/${u.username}`}
-                                            style={{
-                                                textDecoration: 'none',
-                                                background: 'var(--color-surface)',
-                                                border: '1px solid var(--color-border)',
-                                                borderRadius: 16,
-                                                padding: 20,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 16,
-                                                boxShadow: 'var(--shadow-sm)',
-                                                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(-3px)';
-                                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    width: 48,
-                                                    height: 48,
-                                                    borderRadius: '50%',
-                                                    background: 'var(--color-accent)',
-                                                    color: '#fff',
-                                                    fontWeight: 700,
-                                                    fontSize: 16,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    flexShrink: 0,
-                                                }}
-                                            >
-                                                {initials}
-                                            </div>
-                                            <div style={{ flex: 1, overflow: 'hidden' }}>
-                                                <h4
-                                                    style={{
-                                                        fontSize: 15,
-                                                        fontWeight: 700,
-                                                        margin: '0 0 2px',
-                                                        color: 'var(--color-text-primary)',
-                                                        whiteSpace: 'nowrap',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                    }}
-                                                >
-                                                    {u.name || u.username}
-                                                </h4>
-                                                <p style={{ fontSize: 12, color: 'var(--color-accent)', margin: 0, fontWeight: 600 }}>
-                                                    @{u.username}
-                                                </p>
-                                            </div>
-                                            <span style={{ fontSize: 12, color: 'var(--color-text-muted)', flexShrink: 0 }}>→</span>
-                                        </Link>
-                                    );
-                                })}
+                                {matchedUsers.map((u) => (
+                                    <FoodieCard key={u._id} user={u} />
+                                ))}
                             </div>
                         )}
                     </div>
                 ) : (
                     /* RECIPES TAB CONTENT */
                     <div>
-                        {/* Category filters — horizontal scroll strip on mobile */}
-                        {!hasSearch && categories.length > 1 && (
-                            <div
-                                className="scroll-strip"
-                                style={{
-                                    marginBottom: 28,
-                                    paddingBottom: 4,
-                                    // On desktop, allow wrapping
-                                    flexWrap: isMobile ? 'nowrap' : 'wrap',
-                                    gap: 8,
-                                }}
-                            >
-                                {categories.map((cat) => (
-                                    <button
-                                        key={cat}
-                                        id={`cat-filter-${cat.toLowerCase()}`}
-                                        onClick={() => setSelectedCategory(cat)}
-                                        style={{
-                                            padding: '7px 18px',
-                                            borderRadius: 50,
-                                            border: selectedCategory === cat
-                                                ? '1.5px solid var(--color-accent)'
-                                                : '1.5px solid var(--color-border)',
-                                            background: selectedCategory === cat
-                                                ? 'var(--color-accent)'
-                                                : 'var(--color-surface)',
-                                            color: selectedCategory === cat ? '#fff' : 'var(--color-text-secondary)',
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.15s ease',
-                                            fontFamily: "'Inter', sans-serif",
-                                            whiteSpace: 'nowrap',
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                      {/* Category filters */}
+{!hasSearch && categories.length > 1 && (
+    <div className="flex justify-between items-center w-full gap-4 mb-8">
+        <div className="flex-1 flex overflow-x-auto pb-4 gap-3 md:flex-wrap" style={{ scrollbarWidth: 'none' }}>
+            {categories.map((cat) => (
+                <button
+                    key={cat}
+                    id={`cat-filter-${cat.toLowerCase()}`}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                        selectedCategory === cat
+                            ? 'bg-orange-500 text-white shadow-md transform scale-105'
+                            : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-500'
+                    }`}
+                >
+                    {cat}
+                </button>
+            ))}
+        </div>
 
+        <div className="relative shrink-0">
+            <button
+                type="button"
+                onClick={() => setShowSortMenu((isOpen) => !isOpen)}
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white border border-gray-200 rounded-full px-4 py-2"
+            >
+                Sort: {sortBy}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9" />
+                </svg>
+            </button>
+
+            {showSortMenu && (
+                <div className="absolute right-0 top-12 w-48 bg-white shadow-xl border border-gray-100 rounded-xl py-2 z-10">
+                    {['Newest', 'Most Popular', 'Highest Rated'].map((option) => (
+                        <button
+                            key={option}
+                            type="button"
+                            onClick={() => {
+                                setSortBy(option);
+                                setShowSortMenu(false);
+                            }}
+                            className="block w-full px-4 py-2 text-left hover:bg-gray-50 text-sm text-gray-700"
+                        >
+                            {option}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    </div>
+)}
                         {/* Results meta */}
                         {!loading && !error && (
                             <div
@@ -506,7 +310,62 @@ function RecipeFeed() {
                                 </button>
                             </div>
                         )}
+{/* Featured Recipe Banner */}
+      {!loading && !error && recipes.length > 0 && selectedCategory === 'All' && !hasSearch && (
+          <FeaturedRecipe recipe={recipes[0]} />
+      )}
+                        {!hasSearch && selectedCategory === 'All' && featuredChefs.length > 0 && (
+                            <section className="my-12">
+                                <div className="flex items-center justify-between gap-4 mb-8">
+                                    <h2 className="font-serif text-3xl text-gray-900 mb-0">
+                                        Meet Our Top Chefs
+                                    </h2>
+                                    <button
+                                        onClick={() => setSearchTab('users')}
+                                        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                                    >
+                                        View all foodies
+                                    </button>
+                                </div>
+                                <div className="flex overflow-x-auto gap-10 pb-6 no-scrollbar">
+                                    {featuredChefs.map((chef) => {
+                                        const chefName = chef.name || chef.username || 'Chef';
+                                        const avatar = chef.avatar || chef.profileImage || chef.image;
+                                        const recipeCount = chef.recipeCount ?? chef.recipes?.length ?? 0;
 
+                                        return (
+                                            <div key={chef._id} className="flex flex-col items-center flex-shrink-0 w-32 group">
+                                                <a href={`/user/${chef.username}`} className="block">
+                                                    {avatar ? (
+                                                        <img
+                                                            src={avatar}
+                                                            alt={chefName}
+                                                            className="w-28 h-28 rounded-full object-cover shadow-sm transition-transform duration-300 group-hover:scale-105 border-4 border-transparent group-hover:border-gray-100"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-28 h-28 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-2xl font-serif shadow-sm transition-transform duration-300 group-hover:scale-105 border-4 border-transparent group-hover:border-gray-100">
+                                                            {chefName.slice(0, 2).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                </a>
+                                                <a href={`/user/${chef.username}`} className="font-serif text-lg text-gray-900 mt-4 text-center truncate max-w-full hover:text-orange-600 transition-colors">
+                                                    {chefName}
+                                                </a>
+                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
+                                                    {recipeCount} {recipeCount === 1 ? 'Recipe' : 'Recipes'}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="mt-4 px-5 py-1.5 border border-gray-300 rounded-full text-xs font-semibold text-gray-700 hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+                                                >
+                                                    Follow
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        )}
                         {/* Grid */}
                         <div
                             style={{

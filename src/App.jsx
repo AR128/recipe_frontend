@@ -3,6 +3,8 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from './context/useAuth';
 import AvatarDropdown from './components/AvatarDropdown';
 import useWindowWidth from './hooks/useWindowWidth';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function getInitials(user) {
     if (!user) return '?';
@@ -64,143 +66,12 @@ function App() {
                 transition: 'background-color 0.2s ease, color 0.2s ease',
             }}
         >
-            {/* Navigation */}
-            {!isAuthPage && (
-                <nav
-                    style={{
-                        background: 'var(--color-surface)',
-                        borderBottom: '1px solid var(--color-border)',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 50,
-                        boxShadow: 'var(--shadow-sm)',
-                    }}
-                >
-                    <div
-                        style={{
-                            maxWidth: 1200,
-                            margin: '0 auto',
-                            padding: isMobile ? '0 14px' : '0 20px',
-                            height: isMobile ? 52 : 58,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}
-                    >
-                        {/* Brand */}
-                        <Link
-                            to="/"
-                            id="nav-brand"
-                            style={{
-                                textDecoration: 'none',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 7,
-                                flexShrink: 0,
-                            }}
-                        >
-                            <span style={{ fontSize: 18, lineHeight: 1 }}>🍽️</span>
-                            <span
-                                style={{
-                                    fontFamily: "'Playfair Display', Georgia, serif",
-                                    fontSize: isMobile ? 15 : 18,
-                                    fontWeight: 700,
-                                    color: 'var(--color-text-primary)',
-                                    letterSpacing: '0.02em',
-                                    textTransform: 'uppercase',
-                                    whiteSpace: 'nowrap',
-                                }}
-                            >
-                                Food Recipe
-                            </span>
-                        </Link>
-
-                        {/* Desktop: Right side */}
-                        {!isMobile && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                {isAuthenticated ? (
-                                    <AvatarDropdown />
-                                ) : (
-                                    <>
-                                        <Link
-                                            id="nav-login"
-                                            to="/login"
-                                            style={{
-                                                textDecoration: 'none',
-                                                fontSize: 13,
-                                                fontWeight: 600,
-                                                color: 'var(--color-text-secondary)',
-                                                padding: '7px 14px',
-                                                borderRadius: 8,
-                                                transition: 'color 0.15s ease, background 0.15s ease',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.color = 'var(--color-text-primary)';
-                                                e.currentTarget.style.background = 'var(--color-surface-2)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.color = 'var(--color-text-secondary)';
-                                                e.currentTarget.style.background = 'transparent';
-                                            }}
-                                        >
-                                            Log In
-                                        </Link>
-                                        <Link
-                                            id="nav-signup"
-                                            to="/signup"
-                                            style={{
-                                                textDecoration: 'none',
-                                                fontSize: 13,
-                                                fontWeight: 600,
-                                                color: '#fff',
-                                                background: 'var(--color-accent)',
-                                                padding: '7px 18px',
-                                                borderRadius: 8,
-                                                transition: 'background 0.15s ease',
-                                            }}
-                                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
-                                            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-accent)')}
-                                        >
-                                            Sign Up
-                                        </Link>
-                                    </>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Mobile: ONLY Three Horizontal Bars button */}
-                        {isMobile && (
-                            <button
-                                id="mobile-menu-btn"
-                                aria-label="Open navigation menu"
-                                onClick={() => setMenuOpen(true)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    padding: 6,
-                                    color: 'var(--color-text-primary)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    borderRadius: 8,
-                                }}
-                            >
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                                    <line x1="3" y1="6" x2="21" y2="6" />
-                                    <line x1="3" y1="12" x2="21" y2="12" />
-                                    <line x1="3" y1="18" x2="21" y2="18" />
-                                </svg>
-                            </button>
-                        )}
-                    </div>
-                </nav>
-            )}
-
+          {/* Navigation Component */}
+            {!isAuthPage && <Navbar />}
             {/* Mobile Navigation Drawer */}
             {menuOpen && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop */}j
                     <div
                         className="mobile-nav-overlay"
                         onClick={() => setMenuOpen(false)}
@@ -340,27 +211,8 @@ function App() {
                 <Outlet />
             </main>
 
-            {/* Footer */}
-            {!isAuthPage && (
-                <footer
-                    style={{
-                        background: 'var(--color-surface)',
-                        borderTop: '1px solid var(--color-border)',
-                        padding: isMobile ? '16px 14px' : '20px',
-                        textAlign: 'center',
-                    }}
-                >
-                    <p
-                        style={{
-                            fontSize: 12,
-                            color: 'var(--color-text-muted)',
-                            margin: 0,
-                        }}
-                    >
-                        © {new Date().getFullYear()} Food Recipe. All rights reserved.
-                    </p>
-                </footer>
-            )}
+           {/* Footer */}
+            {!isAuthPage && <Footer />}
         </div>
     );
 }
