@@ -2,21 +2,46 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import picture2 from '../assets/Picture2.png';
 import { useAuth } from '../context/useAuth';
+import API_BASE_URL from '../api/axios'
 
 function Login() {
-  const [email, setEmail] = useState('');
+  const [LoginData, setLoginData] = useState({
+    identifier: "",
+    password: ""
+  });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [view, setView] = useState("login");
+  const [sessionUser, setSessionUser] = useState(null);
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [feedback, setFeedback] = useState({ text: "", type: "" });
+
+  const handleUserLogin = async (e) => {
+    e.preventDefault();
+    resetMessage();
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(LoginData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Login failed");
+      setSessionUser(data.user);
+    } catch (err) {
+      setFeedback({ text: err.message, type: "error" });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await login(LoginData.identifier, password);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -124,15 +149,16 @@ function Login() {
                   marginBottom: 6,
                 }}
               >
-                Email
+                Username, Email, or Mobile
               </label>
+              
               <input
                 id="login-email"
-                type="email"
+                type=""
                 required
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email or UserName Or Mobile No"
+                value={LoginData.identifier}
+                onChange={(e) => setLoginData({...LoginData, identifier: e.target.value})}
                 style={{
                   width: '100%',
                   padding: '11px 14px',
