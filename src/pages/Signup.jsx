@@ -1,23 +1,36 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router'; // Note: In newer versions, this is usually 'react-router-dom'
 import picture1 from '../assets/Picture1.png';
 import { useAuth } from '../context/useAuth';
 
 function Signup() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState(''); // Added mobile state
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Added confirm password state
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
   const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
+    // Quick frontend validation to match backend requirements
+    if (password !== confirmPassword) {
+      return setError('Passwords do not match.');
+    }
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      return setError('Mobile number must be exactly 10 digits.');
+    }
+
     setLoading(true);
     try {
-      await signup(username, email, password);
+      // Pass all 5 arguments to your Auth Context
+      await signup(username, email, mobile, password, confirmPassword);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
@@ -28,7 +41,7 @@ function Signup() {
 
   return (
     <div className="grow flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-sm flex max-w-4xl w-full max-h-[80vh] overflow-hidden border border-gray-200">
+      <div className="bg-white rounded-3xl shadow-sm flex max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-200">
         {/* Left Side - Image */}
         <div className="w-1/2 hidden md:block">
           <img src={picture1} alt="Food" className="w-full h-full object-cover" />
@@ -69,12 +82,39 @@ function Signup() {
               />
             </div>
 
+            {/* Added Mobile Input */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1 font-serif">Mobile Number *</label>
+              <input
+                type="tel"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                required
+                pattern="[0-9]{10}"
+                title="Please enter a 10-digit mobile number"
+                className="w-full border border-gray-200 rounded p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400"
+              />
+            </div>
+
             <div>
               <label className="block text-xs text-gray-500 mb-1 font-serif">Password *</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className="w-full border border-gray-200 rounded p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400"
+              />
+            </div>
+
+            {/* Added Confirm Password Input */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1 font-serif">Confirm Password *</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
                 className="w-full border border-gray-200 rounded p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400"
