@@ -13,6 +13,7 @@ import UserProfile from "./pages/UserProfile.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AddRecipe from "./pages/AddRecipe.jsx";
 
 const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
       {
         path: "/signup",
         element: <Signup />,
+      },
+      {
+        path: "/AddRecipe",
+        element: <AddRecipe />,
       },
       {
         element: <ProtectedRoute />,

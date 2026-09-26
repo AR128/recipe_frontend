@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import RecipeCard from '../components/RecipeCard';
 import { getRecipes, getCategories, searchUsers } from '../api/recipeApi';
 import useWindowWidth from '../hooks/useWindowWidth';
@@ -52,6 +52,8 @@ function RecipeFeed() {
     const searchRef = useRef(null);
 
     const debouncedSearch = useDebounce(search, 400);
+
+    const navigate = useNavigate()
 
     // Load categories on mount
     useEffect(() => {
@@ -276,6 +278,11 @@ function RecipeFeed() {
                             }}
                         >
                             👨‍🍳 Foodies {matchedUsers.length > 0 && `(${matchedUsers.length})`}
+                        </button>
+                        <button 
+                            onClick={() => navigate('AddRecipe')}
+                            className='bg-orange-400 border-2 rounded-sm text-center px-2 hover:bg-red-300'>
+                                Add Recipe +
                         </button>
                     </div>
                 </div>
