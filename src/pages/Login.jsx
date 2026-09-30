@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import picture2 from '../assets/Picture2.png';
+import loginImg from '../assets/Login-image.avif';
 import { useAuth } from '../context/useAuth';
 
-function Login() {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -26,223 +26,86 @@ function Login() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: 'calc(100vh - 60px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        background: 'var(--color-bg, #f8f9fa)',
-      }}
-    >
-      {/* Outer Card Container */}
-      <div
-        style={{
-          display: 'flex',
-          maxWidth: 880,
-          width: '100%',
-          background: '#ffffff',
-          borderRadius: 36,
-          border: '1px solid var(--color-border, #e5e7eb)',
-          overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
-        }}
-      >
-        {/* Left Side: Image */}
-        <div
-          style={{
-            flex: 1,
-            display: 'block',
-            minHeight: 440,
-            maxWidth: '50%',
-          }}
-          className="hidden md:block"
-        >
-          <img
-            src={picture2}
-            alt="Delicious Dish"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        </div>
+    <div className="h-screen flex flex-col md:flex-row bg-white font-sans text-neutral-900 overflow-hidden">
+      
+      {/* IMAGE SIDE (Left) - Locked exactly to screen height */}
+      <div className="w-full md:w-1/2 h-[30vh] md:h-screen relative shrink-0">
+        <img
+          src={loginImg}
+          alt="Login background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/5 pointer-events-none" />
+      </div>
 
-        {/* Right Side: Login Form */}
-        <div
-          style={{
-            flex: 1,
-            padding: '48px 44px 40px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          {/* Title */}
-          <h1
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: 34,
-              fontWeight: 700,
-              textAlign: 'center',
-              color: '#1a1a1a',
-              margin: '0 0 32px 0',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Login
+      {/* FORM SIDE (Right) - Centers content, scrolls internally only if screen is tiny */}
+      <div className="w-full md:w-1/2 h-[70vh] md:h-screen overflow-y-auto flex items-center justify-center p-6 md:p-12 lg:p-16">
+        <div className="w-full max-w-sm m-auto">
+          
+          <Link to="/" className="font-serif text-3xl font-bold text-black tracking-tight block mb-10 hover:opacity-70 transition-opacity">
+            Poodiest.
+          </Link>
+
+          <h1 className="font-serif text-4xl text-black mb-2">
+            Welcome back.
           </h1>
+          <p className="text-neutral-500 text-sm mb-10">
+            Sign in to access your saved recipes and curated collections.
+          </p>
 
           {error && (
-            <div
-              style={{
-                marginBottom: 20,
-                padding: '10px 14px',
-                borderRadius: 8,
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                color: '#dc2626',
-                fontSize: 13,
-              }}
-            >
-              ⚠️ {error}
+            <div className="mb-6 p-3 bg-neutral-100 border-l-4 border-black text-black text-sm">
+              {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Email Field */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label
-                htmlFor="login-email"
-                style={{
-                  display: 'block',
-                  fontSize: 13,
-                  color: '#666666',
-                  fontFamily: "Georgia, serif",
-                  marginBottom: 6,
-                }}
-              >
-                Email
+              <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-900 mb-2">
+                Email Address
               </label>
               <input
-                id="login-email"
                 type="email"
                 required
-                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  borderRadius: 6,
-                  border: '1px solid #e2e8f0',
-                  outline: 'none',
-                  fontSize: 14,
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#333333',
-                  background: '#ffffff',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.15s ease',
-                }}
-                onFocus={(e) => (e.target.style.borderColor = '#f37321')}
-                onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
+                className="w-full px-4 py-3 border border-neutral-300 rounded-none bg-transparent text-black placeholder-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+                placeholder="Enter your email"
               />
             </div>
 
-            {/* Password Field */}
             <div>
-              <label
-                htmlFor="login-password"
-                style={{
-                  display: 'block',
-                  fontSize: 13,
-                  color: '#666666',
-                  fontFamily: "Georgia, serif",
-                  marginBottom: 6,
-                }}
-              >
+              <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-900 mb-2">
                 Password
               </label>
               <input
-                id="login-password"
                 type="password"
                 required
-                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  borderRadius: 6,
-                  border: '1px solid #e2e8f0',
-                  outline: 'none',
-                  fontSize: 14,
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#333333',
-                  background: '#ffffff',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.15s ease',
-                }}
-                onFocus={(e) => (e.target.style.borderColor = '#f37321')}
-                onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
+                className="w-full px-4 py-3 border border-neutral-300 rounded-none bg-transparent text-black placeholder-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+                placeholder="Enter your password"
               />
             </div>
 
-            {/* Login Button */}
             <button
-              id="login-submit-btn"
               type="submit"
               disabled={loading}
-              style={{
-                width: '100%',
-                marginTop: 10,
-                padding: '12px',
-                borderRadius: 8,
-                border: '1px solid #d95d08',
-                background: 'linear-gradient(to right, #f78c1f, #f2721c)',
-                color: '#ffffff',
-                fontFamily: "Georgia, serif",
-                fontWeight: 700,
-                fontSize: 16,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1,
-                boxShadow: '0 2px 4px rgba(243, 115, 33, 0.2)',
-                transition: 'opacity 0.15s ease, transform 0.1s ease',
-              }}
+              className="w-full bg-black text-white py-3.5 mt-4 text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Authenticating...' : 'Log in'}
             </button>
           </form>
 
-          {/* Bottom Register Link */}
-          <div
-            style={{
-              marginTop: 18,
-              textAlign: 'right',
-            }}
-          >
-            <Link
-              to="/signup"
-              id="register-link"
-              style={{
-                fontSize: 12,
-                fontFamily: "Georgia, serif",
-                color: '#3b71ca',
-                textDecoration: 'none',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
-            >
-              New Here? Register →
+          <p className="mt-8 text-center text-sm text-neutral-500 pb-8 md:pb-0">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-black font-medium hover:underline">
+              Sign up
             </Link>
-          </div>
+          </p>
+          
         </div>
       </div>
     </div>
   );
 }
-
-export default Login;

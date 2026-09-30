@@ -82,6 +82,10 @@ function RecipeFeed() {
                 
                 if (sortBy === 'Newest') {
                     fetchedRecipes.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                } else if (sortBy === 'Most Popular') {
+                    fetchedRecipes.sort((a, b) =>
+                        (b.likesCount || b.likes?.length || 0) - (a.likesCount || a.likes?.length || 0)
+                    );
                 } else if (sortBy === 'Highest Rated') {
                     fetchedRecipes.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 }
@@ -219,7 +223,7 @@ function RecipeFeed() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
                             {loading
                                 ? Array.from({ length: 8 }).map((_, i) => <RecipeCardSkeleton key={i} />)
-                                : recipes.map((recipe) => (
+                                : (selectedCategory === 'All' && !hasSearch ? recipes.slice(1) : recipes).map((recipe) => (
                                       <RecipeCard key={recipe._id || recipe.slug} recipe={recipe} />
                                   ))}
                         </div>

@@ -1,9 +1,8 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 export default function RecipeCard({ recipe }) {
-    if (!recipe) return null;
-
-    const { slug, title, image, authorName, category, cookTime, prepTime } = recipe;
+    const { slug, title, image, authorName, category, cookTime, prepTime } = recipe || {};
 
     // Calculate total time safely
     const totalTime = useMemo(() => {
@@ -12,6 +11,8 @@ export default function RecipeCard({ recipe }) {
         const total = prep + cook;
         return total > 0 ? `${total} min` : '';
     }, [prepTime, cookTime]);
+
+    if (!recipe) return null;
 
     return (
         <Link 

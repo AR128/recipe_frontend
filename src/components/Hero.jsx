@@ -1,4 +1,3 @@
-import React from 'react';
 import heroBg from '../assets/hero-bg.jpg';
 
 export default function Hero({ 
@@ -51,23 +50,30 @@ export default function Hero({
             </button>
           </div>
 
-          <div className="flex items-end border-b border-white/30 focus-within:border-white transition-colors pb-3">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex items-end border-b border-white/30 focus-within:border-white transition-colors pb-3"
+          >
             <input
               ref={searchRef}
               type="text"
-              aria-label="Search"
+              aria-label={searchTab === 'recipes' ? 'Search recipes' : 'Search chefs'}
               placeholder={searchTab === 'recipes' ? "What are you cooking today?" : "Find a creator..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent border-none outline-none text-2xl font-serif text-white placeholder:text-white/40"
             />
-            <button className="shrink-0 text-white hover:opacity-60 transition-opacity ml-4 pb-1">
+            <button
+              type="submit"
+              aria-label="Submit search"
+              className="shrink-0 text-white hover:opacity-60 transition-opacity ml-4 pb-1"
+            >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </button>
-          </div>
+          </form>
         </div>
 
       </div>

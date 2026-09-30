@@ -265,7 +265,7 @@ export default function RecipeDetail() {
                     {/* COMMENTS */}
                     <div className="pt-16 border-t border-[#1A1A1A]">
                         <h2 className="font-serif text-2xl text-[#1A1A1A] mb-8">Community Notes</h2>
-                        <CommentSection recipeId={recipe._id} />
+                        <CommentSection slug={slug} />
                     </div>
 
                 </article>
