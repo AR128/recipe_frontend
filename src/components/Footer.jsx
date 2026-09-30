@@ -1,63 +1,50 @@
-import React from 'react';
+import { Link } from 'react-router';
 
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-16 px-6 md:px-12 mt-20">
-      <div className="max-w-7xl mx-auto">
+    <footer className="w-full bg-[#FAFAFA] border-t border-[#E5E5E5] pt-20 pb-10 mt-auto">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         
-        {/* Top Section: Brand & Newsletter */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24 mb-20">
           
-          {/* Left Side: Brand & Tagline */}
-          <div>
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-white">Poodiest</h2>
-            <p className="text-gray-400 text-sm max-w-sm leading-relaxed">
-              The Recipe Authority. A curated platform for cooks who demand precision, context, and technique — not just ingredient lists.
+          {/* Brand Column */}
+          <div className="md:col-span-6 lg:col-span-5 flex flex-col items-start">
+            <span className="font-serif text-4xl font-bold text-[#1A1A1A] tracking-tighter leading-none mb-6">
+              Poodiest.
+            </span>
+            <p className="text-lg text-[#666666] font-light leading-relaxed max-w-md">
+              A curated space for those who respect technique. Find precise measurements, honest notes, and recipes that actually work.
             </p>
           </div>
-          
-          {/* Right Side: Newsletter Signup */}
-          <div className="md:justify-self-end w-full max-w-md">
-            <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-gray-300">
-              The recipe of the week, in your inbox.
-            </h3>
-            <form className="flex gap-4 items-end" onSubmit={(e) => e.preventDefault()}>
-              <input 
-                type="email" 
-                placeholder="Enter your email address" 
-                className="bg-transparent border-b border-gray-600 text-white focus:border-white focus:outline-none py-2 w-full transition-colors placeholder-gray-600"
-              />
-              <button 
-                type="submit" 
-                className="text-sm font-medium hover:text-gray-300 transition-colors pb-2 whitespace-nowrap"
-              >
-                Subscribe
-              </button>
-            </form>
+
+          {/* Navigation Column 1 */}
+          <div className="md:col-span-3 lg:col-span-3">
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-[#1A1A1A] mb-8">Platform</h4>
+            <ul className="flex flex-col gap-5 text-sm font-medium text-[#8C8C8C]">
+              <li><Link to="/" className="hover:text-[#1A1A1A] transition-colors">Home Feed</Link></li>
+              <li><Link to="#category" className="hover:text-[#1A1A1A] transition-colors">Categories</Link></li>
+              <li><Link to="/users" className="hover:text-[#1A1A1A] transition-colors">Explore Chefs</Link></li>
+            </ul>
+          </div>
+
+          {/* Navigation Column 2 */}
+          <div className="md:col-span-3 lg:col-span-3">
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-[#1A1A1A] mb-8">Community</h4>
+            <ul className="flex flex-col gap-5 text-sm font-medium text-[#8C8C8C]">
+              <li><Link to="/login" className="hover:text-[#1A1A1A] transition-colors">Log In</Link></li>
+              <li><Link to="/signup" className="hover:text-[#1A1A1A] transition-colors">Create Account</Link></li>
+              <li><Link to="#about" className="hover:text-[#1A1A1A] transition-colors">About Us</Link></li>
+            </ul>
           </div>
         </div>
 
-        {/* Subtle Divider Line */}
-        <div className="border-t border-gray-800 my-12"></div>
-
-        {/* Bottom Section: Copyright & Links */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-gray-500 text-xs">
-            &copy; {new Date().getFullYear()} Poodiest. All rights reserved.
-          </p>
-          
-          {/* Navigation Links */}
-          <div className="flex flex-wrap justify-center gap-8 text-xs uppercase tracking-widest text-gray-400">
-            <a href="/" className="hover:text-white transition-colors">Home</a>
-            <a href="/category" className="hover:text-white transition-colors">Category</a>
-            <a href="/about" className="hover:text-white transition-colors">About Us</a>
-            <a href="#" className="hover:text-white transition-colors">Instagram</a>
-          </div>
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-[#E5E5E5] flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold text-[#A3A3A3] uppercase tracking-widest">
+          <p>© {new Date().getFullYear()} Poodiest. All rights reserved.</p>
+          <p>Crafted for home chefs.</p>
         </div>
 
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

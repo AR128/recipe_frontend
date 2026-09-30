@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router';
 import RecipeCard from '../components/RecipeCard';
 import FoodieCard from '../components/FoodieCard';
 import { getRecipes, getCategories, searchUsers } from '../api/recipeApi';
-import useWindowWidth from '../hooks/useWindowWidth';
 import Hero from '../components/Hero';
 import FeaturedRecipe from '../components/FeaturedRecipe';
 
@@ -17,35 +17,24 @@ function useDebounce(value, delay) {
 
 function RecipeCardSkeleton() {
     return (
-        <div
-            style={{
-                background: 'var(--color-surface)',
-                borderRadius: 18,
-                border: '1px solid var(--color-border)',
-                overflow: 'hidden',
-            }}
-        >
-            <div className="skeleton" style={{ height: 210 }} />
-            <div style={{ padding: '20px 20px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div className="skeleton" style={{ height: 22, width: '75%' }} />
-                <div className="skeleton" style={{ height: 14, width: '100%' }} />
-                <div className="skeleton" style={{ height: 14, width: '60%' }} />
-                <div style={{ marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between' }}>
-                    <div className="skeleton" style={{ height: 12, width: 80 }} />
-                    <div className="skeleton" style={{ height: 12, width: 60 }} />
-                </div>
+        <div className="flex flex-col gap-4 animate-pulse">
+            <div className="w-full aspect-4/5 bg-[#E5E5E5]" />
+            <div className="flex items-center justify-between px-1">
+                <div className="h-3 w-16 bg-[#E5E5E5]" />
+                <div className="h-3 w-12 bg-[#E5E5E5]" />
             </div>
+            <div className="h-6 w-3/4 bg-[#E5E5E5] mx-1 mt-1" />
+            <div className="h-4 w-1/2 bg-[#E5E5E5] mx-1 mt-1" />
         </div>
     );
 }
 
 function RecipeFeed() {
-    const { isMobile } = useWindowWidth();
     const [recipes, setRecipes] = useState([]);
     const [categories, setCategories] = useState(['All']);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [search, setSearch] = useState('');
-    const [searchTab, setSearchTab] = useState('recipes'); // 'recipes' | 'users'
+    const [searchTab, setSearchTab] = useState('recipes');
     const [matchedUsers, setMatchedUsers] = useState([]);
     const [featuredChefs, setFeaturedChefs] = useState([]);
     const [usersLoading, setUsersLoading] = useState(false);
@@ -58,375 +47,231 @@ function RecipeFeed() {
 
     const debouncedSearch = useDebounce(search, 400);
 
-    // Load categories on mount
+    // Trigger loading immediately when typing or clicking category
+    useEffect(() => {
+        setLoading(true);
+        setError('');
+        if (searchTab === 'users' && debouncedSearch.trim().length > 0) {
+            setUsersLoading(true);
+        } else if (searchTab === 'users') {
+            setMatchedUsers([]);
+            setUsersLoading(false);
+        }
+    }, [search, selectedCategory, searchTab]);
+
     useEffect(() => {
         getCategories()
             .then((data) => {
                 const cats = (data.categories || []).filter(Boolean);
                 setCategories(['All', 'Quick & Easy', 'Vegan', 'Techniques', ...cats]);
-            })
-            .catch(() => {});
+            }).catch(() => {});
     }, []);
 
     useEffect(() => {
-        searchUsers('')
-            .then((data) => {
-                setFeaturedChefs((data.users || []).slice(0, 4));
-            })
-            .catch(() => setFeaturedChefs([]));
+        searchUsers('').then((data) => {
+            setFeaturedChefs((data.users || []).slice(0, 4));
+        }).catch(() => setFeaturedChefs([]));
     }, []);
 
-    const [prevFilters, setPrevFilters] = useState({ search: null, category: null });
-
-    // Sync loading/error state during render to avoid cascading useEffect renders
-    if (debouncedSearch !== prevFilters.search || selectedCategory !== prevFilters.category) {
-        setPrevFilters({ search: debouncedSearch, category: selectedCategory });
-        setLoading(true);
-        setError('');
-        
-        if (debouncedSearch.trim().length > 0) {
-            setUsersLoading(true);
-        } else {
-            setMatchedUsers([]);
-            setUsersLoading(false);
-        }
-    }
-
-    // Fetch recipes whenever filters change
     const fetchRecipes = useCallback(() => {
+        if (searchTab !== 'recipes') return;
+        
         getRecipes({ search: debouncedSearch, category: selectedCategory })
             .then((data) => {
-                setRecipes(data.recipes || []);
-                setTotal(data.total || 0);
+                let fetchedRecipes = data.recipes || [];
+                
+                if (sortBy === 'Newest') {
+                    fetchedRecipes.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                } else if (sortBy === 'Highest Rated') {
+                    fetchedRecipes.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                }
+                
+                setRecipes(fetchedRecipes);
+                setTotal(data.total || fetchedRecipes.length);
             })
             .catch(() => setError('Failed to load recipes. Please try again.'))
             .finally(() => setLoading(false));
-    }, [debouncedSearch, selectedCategory]);
+    }, [debouncedSearch, selectedCategory, sortBy, searchTab]);
+
+    useEffect(() => { fetchRecipes(); }, [fetchRecipes]);
 
     useEffect(() => {
-        fetchRecipes();
-    }, [fetchRecipes]);
-
-    // Fetch user search results
-    useEffect(() => {
-        if (debouncedSearch.trim().length > 0) {
+        if (searchTab === 'users' && debouncedSearch.trim().length > 0) {
             searchUsers(debouncedSearch.trim())
                 .then((data) => setMatchedUsers(data.users || []))
                 .catch(() => setMatchedUsers([]))
                 .finally(() => setUsersLoading(false));
         }
-    }, [debouncedSearch]);
+    }, [debouncedSearch, searchTab]);
 
     const hasSearch = search.trim().length > 0;
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                background: 'var(--color-bg)',
-            }}
-        >
-        
-           {/* Hero */}
-      <Hero 
-        search={search}
-        setSearch={setSearch}
-        searchRef={searchRef}
-        searchTab={searchTab}
-        setSearchTab={setSearchTab}
-        matchedUsers={matchedUsers}
-      />
-    
+        <div className="min-h-screen bg-[#FAFAFA]">
+            <Hero 
+                search={search} setSearch={setSearch} searchRef={searchRef}
+                searchTab={searchTab} setSearchTab={setSearchTab} matchedUsers={matchedUsers}
+            />
 
-            {/* Feed body */}
-            <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '24px 14px 48px' : '36px 20px 60px' }}>
-                {/* USER SEARCH TAB CONTENT */}
+            <div className="max-w-350 mx-auto px-6 lg:px-12 py-16 md:py-24">
+                
                 {searchTab === 'users' ? (
                     <div>
-                        <div style={{ marginBottom: 24 }}>
-                            <h2 style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, margin: '0 0 4px', color: 'var(--color-text-primary)' }}>
-                                {hasSearch ? `Results for "${search}"` : 'Discover Foodies & Chefs'}
+                        <div className="mb-12">
+                            <h2 className="text-3xl font-serif font-medium text-[#1A1A1A] mb-4">
+                                {hasSearch ? `Results for "${search}"` : 'Discover Creators'}
                             </h2>
-                            <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0 }}>
+                            <p className="text-lg text-[#666666] font-light max-w-2xl">
                                 Connect with culinary creators and explore their published recipe collections.
                             </p>
                         </div>
 
                         {usersLoading ? (
-                            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-muted)' }}>
-                                Searching foodies...
-                            </div>
+                            <div className="text-center py-20 text-[#A3A3A3] font-serif text-xl italic">Searching...</div>
                         ) : matchedUsers.length === 0 ? (
-                            <div
-                                style={{
-                                    textAlign: 'center',
-                                    padding: '48px 20px',
-                                    background: 'var(--color-surface)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: 16,
-                                }}
-                            >
-                                <span style={{ fontSize: 36, display: 'block', marginBottom: 12 }}>🔍</span>
-                                <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 6px', color: 'var(--color-text-primary)' }}>
-                                    {hasSearch ? `No foodies found matching "${search}"` : 'Type a name or username above to search'}
+                            <div className="text-center py-32 border-y border-[#E5E5E5]">
+                                <h3 className="text-2xl font-serif text-[#1A1A1A] mb-4">
+                                    {hasSearch ? `No creators found matching "${search}"` : 'Type a name above to search'}
                                 </h3>
-                                <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
-                                    Try searching by username or display name.
-                                </p>
                             </div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, 260px), 1fr))`, gap: 16 }}>
-                                {matchedUsers.map((u) => (
-                                    <FoodieCard key={u._id} user={u} />
-                                ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                                {matchedUsers.map((u) => <FoodieCard key={u._id} user={u} />)}
                             </div>
                         )}
                     </div>
                 ) : (
-                    /* RECIPES TAB CONTENT */
                     <div>
-                      {/* Category filters */}
-{!hasSearch && categories.length > 1 && (
-    <div className="flex justify-between items-center w-full gap-4 mb-8">
-        <div className="flex-1 flex overflow-x-auto pb-4 gap-3 md:flex-wrap" style={{ scrollbarWidth: 'none' }}>
-            {categories.map((cat) => (
-                <button
-                    key={cat}
-                    id={`cat-filter-${cat.toLowerCase()}`}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                        selectedCategory === cat
-                            ? 'bg-orange-500 text-white shadow-md transform scale-105'
-                            : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-500'
-                    }`}
-                >
-                    {cat}
-                </button>
-            ))}
-        </div>
+                        {/* MINIMALIST TAB COMMAND BAR */}
+                        {!hasSearch && categories.length > 1 && (
+                            <div className="w-full mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#E5E5E5] pb-px">
+                                <div className="flex-1 flex overflow-x-auto gap-10 md:flex-wrap scrollbar-none [&::-webkit-scrollbar]:hidden">
+                                    {categories.map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setSelectedCategory(cat)}
+                                            className={`whitespace-nowrap pb-4 text-xs font-semibold uppercase tracking-widest transition-all relative ${
+                                                selectedCategory === cat
+                                                    ? 'text-[#1A1A1A]'
+                                                    : 'text-[#8C8C8C] hover:text-[#1A1A1A]'
+                                            }`}
+                                        >
+                                            {cat}
+                                            {selectedCategory === cat && (
+                                                <span className="absolute bottom-0 left-0 w-full h-px bg-[#1A1A1A]"></span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
 
-        <div className="relative shrink-0">
-            <button
-                type="button"
-                onClick={() => setShowSortMenu((isOpen) => !isOpen)}
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white border border-gray-200 rounded-full px-4 py-2"
-            >
-                Sort: {sortBy}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="6 9 12 15 18 9" />
-                </svg>
-            </button>
-
-            {showSortMenu && (
-                <div className="absolute right-0 top-12 w-48 bg-white shadow-xl border border-gray-100 rounded-xl py-2 z-10">
-                    {['Newest', 'Most Popular', 'Highest Rated'].map((option) => (
-                        <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                                setSortBy(option);
-                                setShowSortMenu(false);
-                            }}
-                            className="block w-full px-4 py-2 text-left hover:bg-gray-50 text-sm text-gray-700"
-                        >
-                            {option}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    </div>
-)}
-                        {/* Results meta */}
-                        {!loading && !error && (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: 20,
-                                    flexWrap: 'wrap',
-                                    gap: 6,
-                                }}
-                            >
-                                <h2
-                                    className="font-display"
-                                    style={{
-                                        fontSize: isMobile ? 18 : 20,
-                                        fontWeight: 700,
-                                        color: 'var(--color-text-primary)',
-                                        margin: 0,
-                                    }}
-                                >
-                                    {hasSearch
-                                        ? `Results for "${search}"`
-                                        : selectedCategory !== 'All'
-                                        ? selectedCategory
-                                        : 'Latest Recipes'}
-                                </h2>
-                                {total > 0 && (
-                                    <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                                        {total} recipe{total !== 1 ? 's' : ''}
-                                    </span>
-                                )}
+                                <div className="relative shrink-0 pb-4 hidden md:block">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSortMenu((isOpen) => !isOpen)}
+                                        className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors"
+                                    >
+                                        Sort: <span className="text-[#1A1A1A]">{sortBy}</span>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <polyline points="6 9 12 15 18 9" />
+                                        </svg>
+                                    </button>
+                                    {showSortMenu && (
+                                        <div className="absolute right-0 top-10 w-48 bg-white border border-[#E5E5E5] shadow-2xl py-2 z-50">
+                                            {['Newest', 'Most Popular', 'Highest Rated'].map((option) => (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => { setSortBy(option); setShowSortMenu(false); }}
+                                                    className="block w-full px-6 py-3 text-left hover:bg-[#FAFAFA] text-sm text-[#1A1A1A]"
+                                                >
+                                                    {option}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
-                        {/* Error */}
+                        {!loading && !error && (
+                            <div className="flex justify-between items-end mb-10 flex-wrap gap-4">
+                                <h2 className="text-3xl font-serif font-medium text-[#1A1A1A]">
+                                    {hasSearch ? `Results for "${search}"` : selectedCategory !== 'All' ? selectedCategory : 'Latest Recipes'}
+                                </h2>
+                                {total > 0 && <span className="text-sm font-medium text-[#8C8C8C]">{total} recipe{total !== 1 ? 's' : ''}</span>}
+                            </div>
+                        )}
+
                         {error && (
-                            <div
-                                style={{
-                                    background: 'var(--color-accent-soft)',
-                                    border: '1px solid rgba(220,76,76,0.2)',
-                                    borderRadius: 12,
-                                    padding: '16px 20px',
-                                    color: 'var(--color-accent)',
-                                    fontSize: 14,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 10,
-                                    marginBottom: 24,
-                                    flexWrap: 'wrap',
-                                }}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                                </svg>
-                                {error}
-                                <button
-                                    onClick={fetchRecipes}
-                                    style={{
-                                        marginLeft: 'auto',
-                                        background: 'none',
-                                        border: 'none',
-                                        color: 'var(--color-accent)',
-                                        cursor: 'pointer',
-                                        fontSize: 13,
-                                        fontWeight: 600,
-                                        textDecoration: 'underline',
-                                    }}
-                                >
+                            <div className="border border-[#1A1A1A] p-6 text-[#1A1A1A] font-serif text-lg flex items-center justify-between mb-12">
+                                <span>{error}</span>
+                                <button onClick={fetchRecipes} className="uppercase text-xs font-bold tracking-widest border-b border-[#1A1A1A] hover:opacity-60 transition-opacity">
                                     Retry
                                 </button>
                             </div>
                         )}
-{/* Featured Recipe Banner */}
-      {!loading && !error && recipes.length > 0 && selectedCategory === 'All' && !hasSearch && (
-          <FeaturedRecipe recipe={recipes[0]} />
-      )}
+
+                        {!loading && !error && recipes.length > 0 && selectedCategory === 'All' && !hasSearch && (
+                            <FeaturedRecipe recipe={recipes[0]} />
+                        )}
+
+                        {/* GALLERY GRID */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+                            {loading
+                                ? Array.from({ length: 8 }).map((_, i) => <RecipeCardSkeleton key={i} />)
+                                : recipes.map((recipe) => (
+                                      <RecipeCard key={recipe._id || recipe.slug} recipe={recipe} />
+                                  ))}
+                        </div>
+
+                        {!loading && !error && recipes.length === 0 && (
+                            <div className="text-center py-32 border-y border-[#E5E5E5] mt-12">
+                                <h3 className="text-3xl font-serif text-[#1A1A1A] mb-6">
+                                    {hasSearch ? 'No recipes found.' : 'No recipes published yet.'}
+                                </h3>
+                                {hasSearch && (
+                                    <button onClick={() => setSearch('')} className="uppercase text-xs font-bold tracking-widest border-b border-[#1A1A1A] pb-1 hover:opacity-60 transition-opacity">
+                                        Clear Search
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {/* CHEF SECTION */}
                         {!hasSearch && selectedCategory === 'All' && featuredChefs.length > 0 && (
-                            <section className="my-12">
-                                <div className="flex items-center justify-between gap-4 mb-8">
-                                    <h2 className="font-serif text-3xl text-gray-900 mb-0">
-                                        Meet Our Top Chefs
-                                    </h2>
-                                    <button
-                                        onClick={() => setSearchTab('users')}
-                                        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-                                    >
-                                        View all foodies
+                            <section className="mt-32 pt-20 border-t border-[#E5E5E5]">
+                                <div className="flex items-end justify-between mb-16">
+                                    <h2 className="font-serif text-4xl text-[#1A1A1A]">Curated Creators</h2>
+                                    <button onClick={() => setSearchTab('users')} className="uppercase text-xs font-bold tracking-widest text-[#1A1A1A] hover:opacity-60 transition-opacity">
+                                        View all
                                     </button>
                                 </div>
-                                <div className="flex overflow-x-auto gap-10 pb-6 no-scrollbar">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
                                     {featuredChefs.map((chef) => {
                                         const chefName = chef.name || chef.username || 'Chef';
                                         const avatar = chef.avatar || chef.profileImage || chef.image;
-                                        const recipeCount = chef.recipeCount ?? chef.recipes?.length ?? 0;
 
                                         return (
-                                            <div key={chef._id} className="flex flex-col items-center flex-shrink-0 w-32 group">
-                                                <a href={`/user/${chef.username}`} className="block">
+                                            <div key={chef._id} className="flex flex-col items-start group">
+                                                <Link to={`/user/${chef.username}`} className="block w-full mb-6 overflow-hidden bg-[#F2F2F2]">
                                                     {avatar ? (
-                                                        <img
-                                                            src={avatar}
-                                                            alt={chefName}
-                                                            className="w-28 h-28 rounded-full object-cover shadow-sm transition-transform duration-300 group-hover:scale-105 border-4 border-transparent group-hover:border-gray-100"
-                                                        />
+                                                        <img src={avatar} alt={chefName} className="w-full aspect-square object-cover grayscale-20 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
                                                     ) : (
-                                                        <div className="w-28 h-28 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-2xl font-serif shadow-sm transition-transform duration-300 group-hover:scale-105 border-4 border-transparent group-hover:border-gray-100">
+                                                        <div className="w-full aspect-square flex items-center justify-center text-4xl font-serif text-[#A3A3A3] group-hover:scale-105 transition-transform duration-700">
                                                             {chefName.slice(0, 2).toUpperCase()}
                                                         </div>
                                                     )}
-                                                </a>
-                                                <a href={`/user/${chef.username}`} className="font-serif text-lg text-gray-900 mt-4 text-center truncate max-w-full hover:text-orange-600 transition-colors">
+                                                </Link>
+                                                <Link to={`/user/${chef.username}`} className="font-serif text-2xl text-[#1A1A1A] hover:opacity-60 transition-opacity truncate w-full">
                                                     {chefName}
-                                                </a>
-                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
-                                                    {recipeCount} {recipeCount === 1 ? 'Recipe' : 'Recipes'}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    className="mt-4 px-5 py-1.5 border border-gray-300 rounded-full text-xs font-semibold text-gray-700 hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
-                                                >
-                                                    Follow
-                                                </button>
+                                                </Link>
                                             </div>
                                         );
                                     })}
                                 </div>
                             </section>
                         )}
-                        {/* Grid */}
-                        <div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, 300px), 1fr))`,
-                                gap: isMobile ? 16 : 24,
-                            }}
-                        >
-                            {loading
-                                ? Array.from({ length: 6 }).map((_, i) => <RecipeCardSkeleton key={i} />)
-                                : recipes.map((recipe) => (
-                                      <RecipeCard key={recipe._id || recipe.slug} recipe={recipe} />
-                                  ))}
-                        </div>
 
-                        {/* Empty state */}
-                        {!loading && !error && recipes.length === 0 && (
-                            <div
-                                style={{
-                                    textAlign: 'center',
-                                    padding: '60px 20px',
-                                    color: 'var(--color-text-muted)',
-                                }}
-                            >
-                                <div style={{ fontSize: 48, marginBottom: 14 }}>🍳</div>
-                                <h3
-                                    className="font-display"
-                                    style={{
-                                        fontSize: 20,
-                                        fontWeight: 700,
-                                        color: 'var(--color-text-secondary)',
-                                        margin: '0 0 10px',
-                                    }}
-                                >
-                                    {hasSearch ? 'No recipes found' : 'No recipes yet'}
-                                </h3>
-                                <p style={{ fontSize: 14, margin: 0 }}>
-                                    {hasSearch
-                                        ? `We couldn't find anything for "${search}". Try a different search.`
-                                        : 'Check back soon — new recipes are on their way.'}
-                                </p>
-                                {hasSearch && (
-                                    <button
-                                        onClick={() => setSearch('')}
-                                        style={{
-                                            marginTop: 20,
-                                            background: 'var(--color-accent)',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: 8,
-                                            padding: '10px 22px',
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        Clear Search
-                                    </button>
-                                )}
-                            </div>
-                        )}
                     </div>
                 )}
             </div>
