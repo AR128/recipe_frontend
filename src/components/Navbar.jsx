@@ -23,7 +23,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full bg-[#FAFAFA] border-b border-[#E5E5E5] sticky top-0 z-50">
+      <nav className="fixed top-0 z-50 w-full bg-[#FAFAFA] border-b border-[#E5E5E5]">
         <div className="max-w-350 mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
           
           {/* Pure Typographic Logo */}
@@ -68,6 +68,7 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
+      <div className="h-20" aria-hidden="true" />
 
       {/* Full-Screen Minimal Mobile Menu */}
       {menuOpen && (
