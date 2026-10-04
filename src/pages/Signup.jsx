@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import picture1 from '../assets/Picture1.png';
+import signupImg from '../assets/Signup-image.avif';
 import { useAuth } from '../context/useAuth';
 
-function Signup() {
+export default function Signup() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +18,7 @@ function Signup() {
     setLoading(true);
     try {
       await signup(username, email, password);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
@@ -27,78 +27,103 @@ function Signup() {
   };
 
   return (
-    <div className="grow flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-sm flex max-w-4xl w-full max-h-[80vh] overflow-hidden border border-gray-200">
-        {/* Left Side - Image */}
-        <div className="w-1/2 hidden md:block">
-          <img src={picture1} alt="Food" className="w-full h-full object-cover" />
-        </div>
+    <div className="h-screen flex flex-col md:flex-row bg-white font-sans text-neutral-900 overflow-hidden">
+      
+      {/* FORM SIDE (Left) - Tightened padding so it fits without scrolling */}
+      <div className="w-full md:w-1/2 h-[70vh] md:h-screen overflow-y-auto flex items-center justify-center p-6 md:p-8 lg:p-12 order-2 md:order-1">
+        <div className="w-full max-w-sm m-auto">
+          
+          <Link to="/" className="font-serif text-3xl font-bold text-black tracking-tight block mb-6 hover:opacity-70 transition-opacity">
+            Poodiest.
+          </Link>
 
-        {/* Right Side - Form */}
-        <div className="w-full md:w-1/2 p-6 md:p-8 lg:p-10 flex flex-col justify-center overflow-y-auto">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-6 text-gray-900" style={{ fontFamily: 'Georgia, serif' }}>
-            Sign up
+          <h2 className="font-serif text-3xl lg:text-4xl text-black mb-2">
+            Join us.
           </h2>
+          <p className="text-neutral-500 text-sm mb-6">
+            Create an account to save recipes and follow top chefs.
+          </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
+            <div className="mb-4 p-3 bg-neutral-100 border-l-4 border-black text-black text-sm">
               {error}
             </div>
           )}
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* Tightened gap between inputs (space-y-4) */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-1 font-serif">User Name *</label>
+              <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-900 mb-1.5">
+                Chef Name
+              </label>
               <input
                 type="text"
+                required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400"
+                className="w-full px-4 py-2.5 border border-neutral-300 rounded-none bg-transparent text-black placeholder-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+                placeholder="How should we call you?"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1 font-serif">Email Address *</label>
+              <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-900 mb-1.5">
+                Email Address
+              </label>
               <input
                 type="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400"
+                className="w-full px-4 py-2.5 border border-neutral-300 rounded-none bg-transparent text-black placeholder-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+                placeholder="Enter your email"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1 font-serif">Password *</label>
+              <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-900 mb-1.5">
+                Password
+              </label>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full border border-gray-200 rounded p-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-400 focus:border-red-400"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 border border-neutral-300 rounded-none bg-transparent text-black placeholder-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+                placeholder="Minimum 8 characters"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#dc4c4c] text-white font-bold py-2.5 rounded hover:bg-[#c94343] transition-colors mt-4 font-serif text-xs tracking-wider disabled:opacity-60"
+              className="w-full bg-black text-white py-3 mt-4 text-sm font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
-              {loading ? 'CREATING ACCOUNT...' : 'SIGN UP'}
+              {loading ? 'Creating profile...' : 'Sign up'}
             </button>
           </form>
 
-          <div className="mt-4 text-center border-t border-gray-100 pt-4">
-            <p className="text-xs text-gray-500 font-serif">
-              <Link to="/login" className="text-[#3b71ca] hover:underline">Already have an account? Log in →</Link>
-            </p>
-          </div>
+          <p className="mt-6 text-center text-sm text-neutral-500 pb-4 md:pb-0">
+            Already have an account?{' '}
+            <Link to="/login" className="text-black font-medium hover:underline">
+              Log in
+            </Link>
+          </p>
+          
         </div>
       </div>
+
+      {/* IMAGE SIDE (Right) */}
+      <div className="w-full md:w-1/2 h-[30vh] md:h-screen relative shrink-0 order-1 md:order-2">
+        <img
+          src={signupImg}
+          alt="Signup background"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/5 pointer-events-none" />
+      </div>
+
     </div>
   );
 }
-
-export default Signup;
