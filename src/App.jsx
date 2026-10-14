@@ -8,7 +8,6 @@ function App() {
     const { isAuthenticated } = useAuth();
     const location = useLocation();
 
-    // Always scroll to top when opening a new page
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
     }, [location.pathname]);
@@ -16,19 +15,10 @@ function App() {
     const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                background: 'var(--color-bg)',
-                color: 'var(--color-text-primary)',
-                transition: 'background-color 0.2s ease, color 0.2s ease',
-            }}
-        >
+        <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900 dark:bg-[#0a0a0a] dark:text-neutral-100 transition-colors duration-200 ease-in-out">
             {!isAuthPage && <Navbar />}
             
-            <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <main className="flex-1 flex flex-col">
                 <Outlet />
             </main>
 

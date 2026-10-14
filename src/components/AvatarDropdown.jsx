@@ -38,88 +38,38 @@ function AvatarDropdown() {
     const initials = getInitials(user);
 
     return (
-        <div ref={ref} style={{ position: 'relative' }}>
+        <div ref={ref} className="relative">
             {/* Avatar button */}
             <button
                 id="avatar-menu-btn"
                 onClick={() => setOpen((v) => !v)}
                 aria-label="Open user menu"
                 aria-expanded={open}
-                style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    background: 'var(--color-accent)',
-                    color: '#fff',
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: 700,
-                    fontSize: 14,
-                    border: '2px solid var(--color-accent)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    boxShadow: open ? 'var(--shadow-md)' : 'var(--shadow-sm)',
-                    transform: open ? 'scale(1.05)' : 'scale(1)',
-                    flexShrink: 0,
-                }}
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-all duration-150 font-sans font-bold text-sm
+                    ${open 
+                        ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-black border-neutral-800 dark:border-neutral-200 shadow-md scale-105' 
+                        : 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm hover:scale-105'
+                    }`}
             >
                 {initials}
             </button>
 
             {/* Dropdown */}
             {open && (
-                <div
-                    className="animate-fade-in"
-                    style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 10px)',
-                        right: 0,
-                        minWidth: 210,
-                        background: 'var(--color-surface)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 14,
-                        boxShadow: 'var(--shadow-lg)',
-                        overflow: 'hidden',
-                        zIndex: 100,
-                    }}
-                >
+                <div className="absolute top-[calc(100%+10px)] right-0 min-w-[210px] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl overflow-hidden z-50 animate-fade-in transition-colors duration-200">
+                    
                     {/* User info header */}
-                    <div
-                        style={{
-                            padding: '14px 16px 10px',
-                            borderBottom: '1px solid var(--color-border)',
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: 'var(--color-text-primary)',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
+                    <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 transition-colors">
+                        <div className="text-[13px] font-semibold text-neutral-900 dark:text-white truncate transition-colors">
                             {user?.name || user?.username}
                         </div>
-                        <div
-                            style={{
-                                fontSize: 11,
-                                color: 'var(--color-text-muted)',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                marginTop: 2,
-                            }}
-                        >
+                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5 transition-colors">
                             {user?.email}
                         </div>
                     </div>
 
                     {/* Menu items */}
-                    <div style={{ padding: '6px 0' }}>
+                    <div className="py-1.5">
                         <DropdownItem
                             id="dropdown-my-account"
                             to="/account"
@@ -158,29 +108,12 @@ function AvatarDropdown() {
                         />
                     </div>
 
-
                     {/* Logout */}
-                    <div style={{ borderTop: '1px solid var(--color-border)', padding: '6px 0' }}>
+                    <div className="py-1.5 border-t border-neutral-200 dark:border-neutral-800 transition-colors">
                         <button
                             id="dropdown-logout"
                             onClick={handleLogout}
-                            style={{
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 10,
-                                padding: '9px 16px',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: 13,
-                                fontWeight: 500,
-                                color: 'var(--color-accent)',
-                                textAlign: 'left',
-                                transition: 'background 0.15s ease',
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-accent-soft)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                            className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-left transition-colors"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -202,21 +135,9 @@ function DropdownItem({ to, icon, label, onClick, id }) {
             id={id}
             to={to}
             onClick={onClick}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '9px 16px',
-                textDecoration: 'none',
-                fontSize: 13,
-                fontWeight: 500,
-                color: 'var(--color-text-primary)',
-                transition: 'background 0.15s ease',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+            className="flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         >
-            <span style={{ color: 'var(--color-text-secondary)' }}>{icon}</span>
+            <span className="text-neutral-500 dark:text-neutral-400">{icon}</span>
             {label}
         </Link>
     );

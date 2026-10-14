@@ -19,8 +19,8 @@ export default function RecipeCard({ recipe }) {
             to={`/recipe/${slug}`} 
             className="group flex flex-col gap-4 outline-none"
         >
-            {/* 1. The Portrait Image Frame (No drop shadows, just a crisp 1px border) */}
-            <div className="w-full aspect-4/5 rounded-2xl overflow-hidden bg-stone-200 border border-stone-200/60 relative">
+            {/* 1. The Portrait Image Frame */}
+            <div className="w-full aspect-4/5 rounded-2xl overflow-hidden bg-stone-200 dark:bg-neutral-800 border border-stone-200/60 dark:border-neutral-800 relative transition-colors">
                 {image ? (
                     <img
                         src={image}
@@ -31,26 +31,26 @@ export default function RecipeCard({ recipe }) {
                         }}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl bg-stone-100">
+                    <div className="w-full h-full flex items-center justify-center text-4xl bg-stone-100 dark:bg-neutral-800 transition-colors">
                         🍽️
                     </div>
                 )}
                 
-                {/* Subtle gradient overlay at the bottom so we could put text there later if needed, but mostly for depth */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-stone-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
 
             {/* 2. The Unboxed Editorial Text */}
             <div className="flex flex-col items-start px-1">
                 <div className="flex items-center justify-between w-full mb-2">
                     {/* Minimalist Category Label */}
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600 dark:text-orange-500">
                         {category || 'Recipe'}
                     </span>
                     
                     {/* Clean Time Indicator */}
                     {totalTime && (
-                        <span className="text-xs font-medium text-stone-400 flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-stone-400 dark:text-neutral-500 flex items-center gap-1.5 transition-colors">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -61,14 +61,14 @@ export default function RecipeCard({ recipe }) {
                 </div>
 
                 {/* Sharp Serif Title */}
-                <h3 className="font-serif text-xl font-bold text-stone-900 leading-snug line-clamp-2 group-hover:text-orange-600 transition-colors">
+                <h3 className="font-serif text-xl font-bold text-stone-900 dark:text-white leading-snug line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors">
                     {title}
                 </h3>
 
                 {/* Subtle Author Attribution */}
                 {authorName && (
-                    <p className="mt-2 text-sm text-stone-500 font-medium">
-                        By <span className="text-stone-700">{authorName}</span>
+                    <p className="mt-2 text-sm text-stone-500 dark:text-neutral-400 font-medium transition-colors">
+                        By <span className="text-stone-700 dark:text-neutral-200 transition-colors">{authorName}</span>
                     </p>
                 )}
             </div>

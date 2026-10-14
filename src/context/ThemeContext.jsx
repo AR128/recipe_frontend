@@ -6,12 +6,21 @@ const STORAGE_KEY = 'recipebite-theme';
 // Apply the resolved theme to the document
 const applyTheme = (preference) => {
     const root = document.documentElement;
+    let isDark = false;
 
     if (preference === 'system') {
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     } else {
-        root.setAttribute('data-theme', preference);
+        isDark = preference === 'dark';
+    }
+
+    // This toggles Tailwind's 'dark' class AND keeps your data-theme attribute
+    if (isDark) {
+        root.classList.add('dark');
+        root.setAttribute('data-theme', 'dark');
+    } else {
+        root.classList.remove('dark');
+        root.setAttribute('data-theme', 'light');
     }
 };
 

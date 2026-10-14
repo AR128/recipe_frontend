@@ -5,6 +5,7 @@ import api from '../api/axios';
 import { deleteRecipePost } from '../api/recipeApi';
 import EditRecipeModal from '../components/EditRecipeModal';
 import useWindowWidth from '../hooks/useWindowWidth';
+import bannerImg from '../assets/profile-banner.jpg'; // Ensure your chosen image is saved here
 
 function Account() {
     const { user, updateProfile, accessToken, token } = useAuth();
@@ -15,21 +16,17 @@ function Account() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveError, setSaveError] = useState('');
 
-    // Active tab: 'my-posts' | 'commented-posts'
     const [activeTab, setActiveTab] = useState('my-posts');
 
-    // My Posts state
     const [myPosts, setMyPosts] = useState([]);
     const [myPostsLoading, setMyPostsLoading] = useState(true);
     const [myPostsError, setMyPostsError] = useState('');
 
-    // Edit / Delete post states
     const [editingPost, setEditingPost] = useState(null);
     const [deletingPost, setDeletingPost] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [actionFeedback, setActionFeedback] = useState('');
 
-    // Lock body scroll when delete confirmation popup is open
     useEffect(() => {
         if (deletingPost) {
             document.body.style.overflow = 'hidden';
@@ -41,14 +38,12 @@ function Account() {
         };
     }, [deletingPost]);
 
-    // Commented Posts state
     const [commentedPosts, setCommentedPosts] = useState([]);
     const [commentedLoading, setCommentedLoading] = useState(true);
     const [commentedError, setCommentedError] = useState('');
 
     const [prevUser, setPrevUser] = useState(null);
 
-    // Synchronize name when user changes (during render to avoid cascading useEffect renders)
     if (user !== prevUser) {
         setPrevUser(user);
         if (user?.name !== undefined) {
@@ -56,7 +51,6 @@ function Account() {
         }
     }
 
-    // Fetch My Posts
     const fetchMyPosts = () => {
         api.get('/my-posts')
             .then((res) => setMyPosts(res.data.recipes || []))
@@ -64,7 +58,6 @@ function Account() {
             .finally(() => setMyPostsLoading(false));
     };
 
-    // Fetch Commented Posts
     const fetchCommentedPosts = () => {
         api.get('/commented-posts')
             .then((res) => setCommentedPosts(res.data.recipes || []))
@@ -119,386 +112,251 @@ function Account() {
     };
 
     return (
-        <div style={{ maxWidth: 960, margin: '28px auto', padding: isMobile ? '0 14px 48px' : '0 20px 60px' }}>
-            {/* Account Title */}
-            <div style={{ marginBottom: 28 }}>
-                <h1
-                    style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: isMobile ? 24 : 32,
-                        fontWeight: 700,
-                        margin: 0,
-                        color: 'var(--color-text-primary)',
-                    }}
-                >
-                    My Account
-                </h1>
-                <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginTop: 4, margin: 0 }}>
-                    Manage your personal profile and view your culinary posts.
-                </p>
+        <div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] transition-colors pb-20">
+            
+            {/* Cinematic Banner */}
+            <div className="w-full h-64 md:h-80 relative">
+                <img 
+                    src={bannerImg} 
+                    alt="Chef Profile Cover" 
+                    className="w-full h-full object-cover brightness-75 dark:brightness-50 transition-all"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
             </div>
 
-            {/* Profile Info Card */}
-            <div
-                style={{
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 16,
-                    padding: 24,
-                    marginBottom: 36,
-                    boxShadow: 'var(--shadow-sm)',
-                }}
-            >
-                <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 16px', color: 'var(--color-text-primary)' }}>
-                    Profile Details
-                </h2>
+            {/* Main Content Overlapping Banner */}
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-24 z-10">
+                
+                {/* Profile Card */}
+                <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 md:p-10 shadow-xl mb-12 transition-colors relative">
+                    
+                    {/* Floating Avatar */}
+                    <div className="absolute -top-12 left-6 md:left-10 w-24 h-24 rounded-full border-4 border-white dark:border-neutral-900 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex items-center justify-center text-3xl font-bold shadow-lg transition-colors">
+                        {(user?.name || user?.username || '?').slice(0, 2).toUpperCase()}
+                    </div>
 
-                <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                    {saveSuccess && (
-                        <div
-                            style={{
-                                padding: '10px 14px',
-                                borderRadius: 8,
-                                background: 'var(--color-success-bg)',
-                                color: 'var(--color-success)',
-                                fontSize: 13,
-                                fontWeight: 500,
-                            }}
-                        >
-                            ✓ Profile name updated successfully!
-                        </div>
-                    )}
-
-                    {saveError && (
-                        <div
-                            style={{
-                                padding: '10px 14px',
-                                borderRadius: 8,
-                                background: 'var(--color-accent-soft)',
-                                color: 'var(--color-accent)',
-                                fontSize: 13,
-                                fontWeight: 500,
-                            }}
-                        >
-                            ⚠️ {saveError}
-                        </div>
-                    )}
-
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                        {/* Display Name */}
+                    <div className="mt-14 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <label
-                                htmlFor="account-name-input"
-                                style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}
-                            >
-                                Display Name
+                            <h1 className="font-serif text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white transition-colors">
+                                {user?.name || 'Chef'}
+                            </h1>
+                            <p className="text-neutral-500 dark:text-neutral-400 mt-1 font-medium tracking-wide">
+                                @{user?.username || 'username'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSaveProfile} className="space-y-6">
+                        {saveSuccess && (
+                            <div className="p-3.5 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm font-medium border border-green-200 dark:border-green-800 transition-colors">
+                                ✓ Profile name updated successfully!
+                            </div>
+                        )}
+
+                        {saveError && (
+                            <div className="p-3.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm font-medium border border-red-200 dark:border-red-800 transition-colors">
+                                ⚠️ {saveError}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Editable Field */}
+                            <div>
+                                <label htmlFor="account-name-input" className="block text-xs font-semibold tracking-widest uppercase text-neutral-900 dark:text-neutral-300 mb-2 transition-colors">
+                                    Display Name
+                                </label>
+                                <input
+                                    id="account-name-input"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Your name"
+                                    className="w-full bg-transparent border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors"
+                                />
+                            </div>
+
+                            {/* Username (Readonly) */}
+                            <div>
+                                <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-500 dark:text-neutral-500 mb-2 transition-colors">
+                                    Username
+                                </label>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={user?.username || ''}
+                                    className="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-neutral-400 dark:text-neutral-500 cursor-not-allowed transition-colors"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Email (Readonly) */}
+                        <div>
+                            <label className="block text-xs font-semibold tracking-widest uppercase text-neutral-500 dark:text-neutral-500 mb-2 transition-colors">
+                                Email Address
                             </label>
                             <input
-                                id="account-name-input"
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Your name"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 14px',
-                                    borderRadius: 10,
-                                    border: '1px solid var(--color-border)',
-                                    background: 'var(--color-bg)',
-                                    color: 'var(--color-text-primary)',
-                                    fontSize: 14,
-                                }}
-                            />
-                        </div>
-
-                        {/* Username (Readonly) */}
-                        <div>
-                            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                                Username
-                            </label>
-                            <input
-                                type="text"
+                                type="email"
                                 readOnly
-                                value={user?.username || ''}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 14px',
-                                    borderRadius: 10,
-                                    border: '1px solid var(--color-border)',
-                                    background: 'var(--color-surface-2)',
-                                    color: 'var(--color-text-muted)',
-                                    fontSize: 14,
-                                    cursor: 'not-allowed',
-                                }}
+                                value={user?.email || ''}
+                                className="w-full bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-neutral-400 dark:text-neutral-500 cursor-not-allowed transition-colors"
                             />
                         </div>
-                    </div>
 
-                    {/* Email (Readonly) */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            readOnly
-                            value={user?.email || ''}
-                            style={{
-                                width: '100%',
-                                padding: '10px 14px',
-                                borderRadius: 10,
-                                border: '1px solid var(--color-border)',
-                                background: 'var(--color-surface-2)',
-                                color: 'var(--color-text-muted)',
-                                fontSize: 14,
-                                cursor: 'not-allowed',
-                            }}
-                        />
-                    </div>
+                        <div className="flex justify-end pt-2">
+                            <button
+                                id="save-profile-btn"
+                                type="submit"
+                                disabled={saving}
+                                className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+                {/* Tabs */}
+                <div className="border-b border-neutral-200 dark:border-neutral-800 mb-8 transition-colors">
+                    <div className="flex gap-8 overflow-x-auto scrollbar-none">
                         <button
-                            id="save-profile-btn"
-                            type="submit"
-                            disabled={saving}
-                            style={{
-                                padding: '9px 20px',
-                                borderRadius: 8,
-                                border: 'none',
-                                background: 'var(--color-accent)',
-                                color: '#fff',
-                                fontSize: 13,
-                                fontWeight: 600,
-                                cursor: saving ? 'not-allowed' : 'pointer',
-                                opacity: saving ? 0.7 : 1,
-                            }}
+                            id="tab-my-posts"
+                            onClick={() => setActiveTab('my-posts')}
+                            className={`flex items-center gap-2 pb-4 text-sm font-bold uppercase tracking-widest transition-colors border-b-2 whitespace-nowrap ${
+                                activeTab === 'my-posts' 
+                                    ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' 
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                            }`}
                         >
-                            {saving ? 'Saving...' : 'Save Changes'}
+                            <span>My Posts</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                activeTab === 'my-posts' 
+                                    ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white' 
+                                    : 'bg-neutral-100 dark:bg-neutral-800/50 text-neutral-500'
+                            }`}>
+                                {myPosts.length}
+                            </span>
+                        </button>
+
+                        <button
+                            id="tab-commented-posts"
+                            onClick={() => setActiveTab('commented-posts')}
+                            className={`flex items-center gap-2 pb-4 text-sm font-bold uppercase tracking-widest transition-colors border-b-2 whitespace-nowrap ${
+                                activeTab === 'commented-posts' 
+                                    ? 'border-neutral-900 dark:border-white text-neutral-900 dark:text-white' 
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                            }`}
+                        >
+                            <span>Commented Posts</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                activeTab === 'commented-posts' 
+                                    ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white' 
+                                    : 'bg-neutral-100 dark:bg-neutral-800/50 text-neutral-500'
+                            }`}>
+                                {commentedPosts.length}
+                            </span>
                         </button>
                     </div>
-                </form>
-            </div>
-
-            {/* Sections Header with Tabs */}
-            <div style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 24 }}>
-                <div style={{ display: 'flex', gap: 24 }}>
-                    <button
-                        id="tab-my-posts"
-                        onClick={() => setActiveTab('my-posts')}
-                        style={{
-                            padding: '12px 0',
-                            background: 'none',
-                            border: 'none',
-                            borderBottom: activeTab === 'my-posts' ? '2px solid var(--color-accent)' : '2px solid transparent',
-                            color: activeTab === 'my-posts' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                            fontWeight: 700,
-                            fontSize: 15,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            transition: 'color 0.15s ease',
-                        }}
-                    >
-                        <span>My Posts</span>
-                        <span
-                            style={{
-                                fontSize: 11,
-                                padding: '2px 8px',
-                                borderRadius: 10,
-                                background: activeTab === 'my-posts' ? 'var(--color-accent-soft)' : 'var(--color-surface-2)',
-                                color: activeTab === 'my-posts' ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                            }}
-                        >
-                            {myPosts.length}
-                        </span>
-                    </button>
-
-                    <button
-                        id="tab-commented-posts"
-                        onClick={() => setActiveTab('commented-posts')}
-                        style={{
-                            padding: '12px 0',
-                            background: 'none',
-                            border: 'none',
-                            borderBottom: activeTab === 'commented-posts' ? '2px solid var(--color-accent)' : '2px solid transparent',
-                            color: activeTab === 'commented-posts' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                            fontWeight: 700,
-                            fontSize: 15,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            transition: 'color 0.15s ease',
-                        }}
-                    >
-                        <span>Commented Posts</span>
-                        <span
-                            style={{
-                                fontSize: 11,
-                                padding: '2px 8px',
-                                borderRadius: 10,
-                                background: activeTab === 'commented-posts' ? 'var(--color-accent-soft)' : 'var(--color-surface-2)',
-                                color: activeTab === 'commented-posts' ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                            }}
-                        >
-                            {commentedPosts.length}
-                        </span>
-                    </button>
                 </div>
-            </div>
 
-            {/* TAB CONTENT: MY POSTS */}
-            {activeTab === 'my-posts' && (
-                <div>
-                    {actionFeedback && (
-                        <div
-                            style={{
-                                padding: '12px 16px',
-                                borderRadius: 10,
-                                background: 'rgba(34, 197, 94, 0.12)',
-                                border: '1px solid #86efac',
-                                color: 'var(--color-success, #16a34a)',
-                                fontSize: 14,
-                                fontWeight: 600,
-                                marginBottom: 20,
-                            }}
-                        >
-                            {actionFeedback}
-                        </div>
-                    )}
+                {/* TAB CONTENT: MY POSTS */}
+                {activeTab === 'my-posts' && (
+                    <div className="animate-fade-in">
+                        {actionFeedback && (
+                            <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm font-semibold border border-green-200 dark:border-green-800 mb-6 transition-colors">
+                                {actionFeedback}
+                            </div>
+                        )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', margin: 0 }}>
-                            Recipes authored and published by you.
-                        </p>
-                        <Link
-                            to="/create-post"
-                            style={{
-                                padding: '8px 16px',
-                                borderRadius: 8,
-                                background: 'var(--color-accent)',
-                                color: '#fff',
-                                textDecoration: 'none',
-                                fontSize: 13,
-                                fontWeight: 600,
-                            }}
-                        >
-                            + Create New Post
-                        </Link>
-                    </div>
-
-                    {myPostsLoading ? (
-                        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-muted)' }}>
-                            Loading your recipes...
-                        </div>
-                    ) : myPostsError ? (
-                        <div style={{ color: 'var(--color-accent)', padding: 16 }}>{myPostsError}</div>
-                    ) : myPosts.length === 0 ? (
-                        <div
-                            style={{
-                                textAlign: 'center',
-                                padding: '48px 20px',
-                                background: 'var(--color-surface)',
-                                border: '1px border-dashed var(--color-border)',
-                                borderRadius: 16,
-                            }}
-                        >
-                            <span style={{ fontSize: 36, display: 'block', marginBottom: 12 }}>👨‍🍳</span>
-                            <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 6px', color: 'var(--color-text-primary)' }}>
-                                You haven't created any posts yet
-                            </h3>
-                            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '0 0 16px' }}>
-                                Share your first delicious recipe with the community!
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                            <p className="text-sm text-neutral-500 dark:text-neutral-400 m-0 transition-colors">
+                                Recipes authored and published by you.
                             </p>
                             <Link
                                 to="/create-post"
-                                style={{
-                                    display: 'inline-block',
-                                    padding: '10px 20px',
-                                    borderRadius: 8,
-                                    background: 'var(--color-accent)',
-                                    color: '#fff',
-                                    textDecoration: 'none',
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                }}
+                                className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 px-5 py-2 rounded-lg text-sm font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors shrink-0"
                             >
-                                Create Your First Post
+                                + Create New Post
                             </Link>
                         </div>
-                    ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: isMobile ? 14 : 20 }}>
-                            {myPosts.map((post) => (
-                                <RecipePostCard
-                                    key={post._id}
-                                    post={post}
-                                    isOwnPost={true}
-                                    onEdit={() => setEditingPost(post)}
-                                    onDelete={() => setDeletingPost(post)}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
 
-            {/* TAB CONTENT: COMMENTED POSTS */}
-            {activeTab === 'commented-posts' && (
-                <div>
-                    <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', margin: '0 0 20px' }}>
-                        Recipes where you have joined the discussion.
-                    </p>
+                        {myPostsLoading ? (
+                            <div className="text-center py-16 text-neutral-500 dark:text-neutral-400 font-serif italic transition-colors">
+                                Loading your recipes...
+                            </div>
+                        ) : myPostsError ? (
+                            <div className="text-red-600 dark:text-red-400 p-4 transition-colors">{myPostsError}</div>
+                        ) : myPosts.length === 0 ? (
+                            <div className="text-center py-20 px-6 bg-white dark:bg-neutral-900 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-2xl transition-colors">
+                                <span className="text-5xl block mb-4">👨‍🍳</span>
+                                <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 transition-colors">
+                                    You haven't created any posts yet
+                                </h3>
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6 transition-colors">
+                                    Share your first delicious recipe with the community!
+                                </p>
+                                <Link
+                                    to="/create-post"
+                                    className="inline-block bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+                                >
+                                    Create Your First Post
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {myPosts.map((post) => (
+                                    <RecipePostCard
+                                        key={post._id}
+                                        post={post}
+                                        isOwnPost={true}
+                                        onEdit={() => setEditingPost(post)}
+                                        onDelete={() => setDeletingPost(post)}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                    {commentedLoading ? (
-                        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-muted)' }}>
-                            Loading commented recipes...
-                        </div>
-                    ) : commentedError ? (
-                        <div style={{ color: 'var(--color-accent)', padding: 16 }}>{commentedError}</div>
-                    ) : commentedPosts.length === 0 ? (
-                        <div
-                            style={{
-                                textAlign: 'center',
-                                padding: '48px 20px',
-                                background: 'var(--color-surface)',
-                                border: '1px border-dashed var(--color-border)',
-                                borderRadius: 16,
-                            }}
-                        >
-                            <span style={{ fontSize: 36, display: 'block', marginBottom: 12 }}>💬</span>
-                            <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 6px', color: 'var(--color-text-primary)' }}>
-                                No commented recipes found
-                            </h3>
-                            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '0 0 16px' }}>
-                                Explore recipes on the home feed and leave a comment to save them here!
-                            </p>
-                            <Link
-                                to="/"
-                                style={{
-                                    display: 'inline-block',
-                                    padding: '10px 20px',
-                                    borderRadius: 8,
-                                    background: 'var(--color-surface-2)',
-                                    color: 'var(--color-text-primary)',
-                                    textDecoration: 'none',
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-border)',
-                                }}
-                            >
-                                Explore Recipe Feed
-                            </Link>
-                        </div>
-                    ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: isMobile ? 14 : 20 }}>
-                            {commentedPosts.map((post) => (
-                                <RecipePostCard key={post._id} post={post} />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                {/* TAB CONTENT: COMMENTED POSTS */}
+                {activeTab === 'commented-posts' && (
+                    <div className="animate-fade-in">
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-8 transition-colors">
+                            Recipes where you have joined the discussion.
+                        </p>
+
+                        {commentedLoading ? (
+                            <div className="text-center py-16 text-neutral-500 dark:text-neutral-400 font-serif italic transition-colors">
+                                Loading commented recipes...
+                            </div>
+                        ) : commentedError ? (
+                            <div className="text-red-600 dark:text-red-400 p-4 transition-colors">{commentedError}</div>
+                        ) : commentedPosts.length === 0 ? (
+                            <div className="text-center py-20 px-6 bg-white dark:bg-neutral-900 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-2xl transition-colors">
+                                <span className="text-5xl block mb-4">💬</span>
+                                <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 transition-colors">
+                                    No commented recipes found
+                                </h3>
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6 transition-colors">
+                                    Explore recipes on the home feed and leave a comment to save them here!
+                                </p>
+                                <Link
+                                    to="/"
+                                    className="inline-block bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                                >
+                                    Explore Recipe Feed
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {commentedPosts.map((post) => (
+                                    <RecipePostCard key={post._id} post={post} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Edit Recipe Modal */}
             <EditRecipeModal
                 isOpen={!!editingPost}
@@ -507,87 +365,38 @@ function Account() {
                 onRecipeUpdated={handleRecipeUpdated}
             />
 
-            {/* Delete Confirmation Modal */}
+            {/* Delete Confirmation Modal (Now completely Tailwind & Dark Mode supported) */}
             {deletingPost && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                        backdropFilter: 'blur(4px)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 16,
-                    }}
+                <div 
+                    className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 transition-opacity"
                     onClick={() => !isDeleting && setDeletingPost(null)}
                 >
-                    <div
-                        style={{
-                            background: 'var(--color-surface, #1e293b)',
-                            color: 'var(--color-text-primary, #fff)',
-                            borderRadius: 16,
-                            width: '100%',
-                            maxWidth: 440,
-                            padding: 24,
-                            border: '1px solid var(--color-border, #334155)',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 16,
-                        }}
+                    <div 
+                        className="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-2xl w-full max-w-md p-6 sm:p-8 border border-neutral-200 dark:border-neutral-800 shadow-2xl flex flex-col gap-5 transition-colors"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div
-                                style={{
-                                    width: 44,
-                                    height: 44,
-                                    borderRadius: '50%',
-                                    background: '#fef2f2',
-                                    color: '#dc2626',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: 22,
-                                    flexShrink: 0,
-                                }}
-                            >
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 flex items-center justify-center text-2xl shrink-0 transition-colors">
                                 🗑️
                             </div>
                             <div>
-                                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
-                                    Delete Recipe Post?
-                                </h3>
-                                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: '4px 0 0' }}>
+                                <h3 className="text-lg font-bold m-0 transition-colors">Delete Recipe Post?</h3>
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400 m-0 mt-1 transition-colors">
                                     This action cannot be undone.
                                 </p>
                             </div>
                         </div>
 
-                        <p style={{ fontSize: 14, color: 'var(--color-text-primary)', margin: 0, lineHeight: 1.5 }}>
+                        <p className="text-sm leading-relaxed m-0 transition-colors">
                             Are you sure you want to permanently delete <strong>"{deletingPost.title}"</strong> and all of its comments?
                         </p>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+                        <div className="flex justify-end gap-3 mt-2">
                             <button
                                 type="button"
                                 disabled={isDeleting}
                                 onClick={() => setDeletingPost(null)}
-                                style={{
-                                    padding: '10px 18px',
-                                    borderRadius: 8,
-                                    border: '1px solid var(--color-border)',
-                                    background: 'transparent',
-                                    color: 'var(--color-text-primary)',
-                                    fontSize: 14,
-                                    fontWeight: 600,
-                                    cursor: isDeleting ? 'not-allowed' : 'pointer',
-                                }}
+                                className="px-5 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-neutral-900 dark:text-white text-sm font-semibold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Cancel
                             </button>
@@ -595,17 +404,7 @@ function Account() {
                                 type="button"
                                 disabled={isDeleting}
                                 onClick={handleConfirmDelete}
-                                style={{
-                                    padding: '10px 20px',
-                                    borderRadius: 8,
-                                    border: 'none',
-                                    background: '#dc2626',
-                                    color: '#fff',
-                                    fontSize: 14,
-                                    fontWeight: 700,
-                                    cursor: isDeleting ? 'not-allowed' : 'pointer',
-                                    opacity: isDeleting ? 0.7 : 1,
-                                }}
+                                className="px-5 py-2.5 rounded-lg border-none bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {isDeleting ? 'Deleting...' : 'Yes, Delete Post'}
                             </button>
@@ -619,103 +418,37 @@ function Account() {
 
 function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
     return (
-        <div
-            style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 14,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: 'var(--shadow-sm)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                position: 'relative',
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-            }}
-        >
-            <Link
-                to={`/recipe/${post.slug}`}
-                style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', flex: 1 }}
-            >
-                <div style={{ height: 160, width: '100%', background: '#f0f0f0', overflow: 'hidden', position: 'relative' }}>
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col group">
+            <Link to={`/recipe/${post.slug}`} className="flex flex-col flex-1">
+                <div className="h-48 w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative transition-colors">
                     <img
                         src={post.image || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=800&q=80'}
                         alt={post.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     {post.category && (
-                        <span
-                            style={{
-                                position: 'absolute',
-                                top: 10,
-                                left: 10,
-                                background: 'rgba(0, 0, 0, 0.65)',
-                                backdropFilter: 'blur(4px)',
-                                color: '#fff',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                padding: '3px 8px',
-                                borderRadius: 6,
-                            }}
-                        >
+                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[11px] font-semibold px-2 py-1 rounded-md">
                             {post.category}
                         </span>
                     )}
                 </div>
-                <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <h4
-                        style={{
-                            fontFamily: "'Playfair Display', Georgia, serif",
-                            fontSize: 16,
-                            fontWeight: 700,
-                            margin: '0 0 6px',
-                            color: 'var(--color-text-primary)',
-                            lineHeight: 1.3,
-                        }}
-                    >
+                
+                <div className="p-5 flex flex-col flex-1">
+                    <h4 className="font-serif text-lg font-bold text-neutral-900 dark:text-white mb-2 leading-snug transition-colors">
                         {post.title}
                     </h4>
-                    <p
-                        style={{
-                            fontSize: 12,
-                            color: 'var(--color-text-secondary)',
-                            margin: '0 0 12px',
-                            lineClamp: 2,
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            display: '-webkit-box',
-                            overflow: 'hidden',
-                            flex: 1,
-                        }}
-                    >
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4 line-clamp-2 flex-1 transition-colors">
                         {post.description}
                     </p>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                    <div className="text-[11px] text-neutral-400 dark:text-neutral-500 flex justify-between uppercase tracking-wider font-semibold transition-colors">
                         <span>By {post.authorName || 'Chef'}</span>
                         <span>{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : ''}</span>
                     </div>
                 </div>
             </Link>
 
-            {/* Own post action bar */}
             {isOwnPost && (
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: 8,
-                        padding: '10px 16px',
-                        borderTop: '1px solid var(--color-border)',
-                        background: 'var(--color-surface-2, rgba(0,0,0,0.03))',
-                        justifyContent: 'flex-end',
-                    }}
-                >
+                <div className="flex gap-2 px-4 py-3 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 justify-end transition-colors">
                     <button
                         type="button"
                         onClick={(e) => {
@@ -723,19 +456,7 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
                             e.stopPropagation();
                             if (onEdit) onEdit(post);
                         }}
-                        style={{
-                            padding: '6px 12px',
-                            borderRadius: 6,
-                            border: '1px solid var(--color-border)',
-                            background: 'var(--color-surface)',
-                            color: 'var(--color-text-primary)',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                        }}
+                        className="px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
                     >
                         ✏️ Edit
                     </button>
@@ -746,19 +467,7 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
                             e.stopPropagation();
                             if (onDelete) onDelete(post);
                         }}
-                        style={{
-                            padding: '6px 12px',
-                            borderRadius: 6,
-                            border: '1px solid rgba(239, 68, 68, 0.4)',
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            color: '#ef4444',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                        }}
+                        className="px-3 py-1.5 rounded-md border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold flex items-center gap-1.5 hover:bg-red-500/20 transition-colors"
                     >
                         🗑️ Delete
                     </button>
