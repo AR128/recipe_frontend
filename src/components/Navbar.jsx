@@ -44,8 +44,8 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full bg-neutral-50 dark:bg-[#0a0a0a] border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-50 transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+      <nav className="fixed top-0 z-50 w-full bg-[#FAFAFA] border-b border-[#E5E5E5]">
+        <div className="max-w-350 mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
           
           <Link to="/" className="flex items-center">
             <span className="font-serif text-3xl font-bold text-neutral-900 dark:text-white tracking-tighter leading-none hover:opacity-70 transition-opacity">
@@ -86,6 +86,7 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
+      <div className="h-20" aria-hidden="true" />
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-neutral-50 dark:bg-[#0a0a0a]">
