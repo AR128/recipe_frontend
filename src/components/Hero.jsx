@@ -24,7 +24,7 @@ export default function Hero({
       </div>
 
       {/* FOREGROUND CONTENT */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col items-start mt-50">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col items-start mt-45">
         
         <h1 className="text-5xl sm:text-7xl lg:text-[6rem] font-serif font-medium text-white leading-none tracking-tighter mb-8 max-w-4xl">
           the <span class="text-[rgb(201,169,110)]">Art</span> of <br/>
