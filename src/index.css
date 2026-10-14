@@ -19,6 +19,14 @@ html {
   overflow-x: hidden;
 }
 
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* We removed the hardcoded background variables here so Tailwind can take over! */
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -27,25 +35,51 @@ body {
   overflow-x: hidden;
 }
 
+.site-navbar {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  border: 1px solid transparent;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+  background: #000000;
+  box-shadow: none;
+  transition:
+    top 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    max-width 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-radius 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    backdrop-filter 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.site-navbar.is-scrolled {
+  top: 1rem;
+  width: calc(100% - 2rem);
+  max-width: 1120px;
+  border-color: rgba(245, 240, 232, 0.26);
+  border-radius: 2rem;
+  background-color: rgba(35, 26, 21, 0.35);
+  box-shadow:
+    0 10px 35px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(245, 240, 232, 0.06);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
 /* =====================================================
-   Typography & Scrollbar
+   Typography
    ===================================================== */
 .font-display {
   font-family: 'Playfair Display', Georgia, serif;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #e5e5e5;
-  border-radius: 3px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: #404040;
 }
 
 /* =====================================================

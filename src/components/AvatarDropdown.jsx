@@ -43,12 +43,13 @@ function AvatarDropdown() {
             <button
                 id="avatar-menu-btn"
                 onClick={() => setOpen((v) => !v)}
-                aria-label="Open user menu"
+                aria-label={open ? 'Close user menu' : 'Open user menu'}
                 aria-expanded={open}
+                aria-controls="avatar-dropdown"
                 className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-all duration-150 font-sans font-bold text-sm
                     ${open 
-                        ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-black border-neutral-800 dark:border-neutral-200 shadow-md scale-105' 
-                        : 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm hover:scale-105'
+                        ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-black border-neutral-800 dark:border-neutral-200 shadow-lg scale-105 ring-4 ring-neutral-900/10 dark:ring-white/10' 
+                        : 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm hover:scale-105 hover:shadow-md'
                     }`}
             >
                 {initials}
@@ -56,20 +57,27 @@ function AvatarDropdown() {
 
             {/* Dropdown */}
             {open && (
-                <div className="absolute top-[calc(100%+10px)] right-0 min-w-[210px] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl overflow-hidden z-50 animate-fade-in transition-colors duration-200">
+                <div
+                    id="avatar-dropdown"
+                    aria-labelledby="avatar-menu-btn"
+                    className="absolute top-[calc(100%+14px)] right-0 w-[min(18rem,calc(100vw-2rem))] bg-white dark:bg-[#151515] border border-neutral-200/80 dark:border-white/10 rounded-2xl shadow-[0_18px_50px_-12px_rgba(0,0,0,0.35)] dark:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-fade-in transition-colors duration-200"
+                >
                     
                     {/* User info header */}
-                    <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 transition-colors">
-                        <div className="text-[13px] font-semibold text-neutral-900 dark:text-white truncate transition-colors">
+                    <div className="px-4 py-4 border-b border-neutral-200/80 dark:border-white/10 transition-colors">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400 dark:text-neutral-500 mb-1">
+                            Signed in as
+                        </div>
+                        <div className="text-sm font-semibold text-neutral-900 dark:text-white truncate transition-colors">
                             {user?.name || user?.username}
                         </div>
-                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5 transition-colors">
+                        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-1 transition-colors">
                             {user?.email}
                         </div>
                     </div>
 
                     {/* Menu items */}
-                    <div className="py-1.5">
+                    <div className="p-2">
                         <DropdownItem
                             id="dropdown-my-account"
                             to="/account"
@@ -109,11 +117,11 @@ function AvatarDropdown() {
                     </div>
 
                     {/* Logout */}
-                    <div className="py-1.5 border-t border-neutral-200 dark:border-neutral-800 transition-colors">
+                    <div className="p-2 border-t border-neutral-200/80 dark:border-white/10 transition-colors">
                         <button
                             id="dropdown-logout"
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-left transition-colors"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -135,9 +143,11 @@ function DropdownItem({ to, icon, label, onClick, id }) {
             id={id}
             to={to}
             onClick={onClick}
-            className="flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/[0.07] hover:text-neutral-950 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400/60"
         >
-            <span className="text-neutral-500 dark:text-neutral-400">{icon}</span>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 transition-colors group-hover:bg-white dark:bg-white/[0.06] dark:text-neutral-400 dark:group-hover:bg-white/10">
+                {icon}
+            </span>
             {label}
         </Link>
     );

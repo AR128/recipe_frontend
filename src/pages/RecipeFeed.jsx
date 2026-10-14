@@ -203,6 +203,12 @@ function RecipeFeed() {
         return fetchRecipes();
     }, [fetchRecipes]);
 
+    const handleRetry = () => {
+        setError('');
+        setLoading(true);
+        fetchRecipes();
+    };
+
     useEffect(() => {
         if (
             searchTab !== 'users' ||
@@ -388,7 +394,7 @@ function RecipeFeed() {
 
                                 <button
                                     type="button"
-                                    onClick={fetchRecipes}
+                                    onClick={handleRetry}
                                     className="uppercase text-xs font-bold tracking-widest border-b border-neutral-900 dark:border-white hover:opacity-60 transition-opacity"
                                 >
                                     Retry
