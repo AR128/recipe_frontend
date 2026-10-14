@@ -63,8 +63,8 @@ export default function Navbar() {
       <nav
         className={`site-navbar text-[#F5F0E8] ${isScrolled ? 'is-scrolled' : ''}`}
       >
-        <div className={`max-w-7xl mx-auto flex items-center justify-between transition-[height,padding] duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-          isScrolled ? 'h-16 px-5 lg:px-6' : 'h-20 px-6 lg:px-12'
+        <div className={`max-w-7xl mx-auto flex items-center justify-between transition-[height,padding] duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isScrolled ? 'h-20 px-5 lg:px-6' : 'h-24 px-6 lg:px-12'
         }`}>
           <Link to="/" className="flex items-center">
             <span className="font-serif text-3xl font-bold tracking-tighter leading-none text-[#F5F0E8] hover:opacity-70 transition-opacity">
@@ -136,7 +136,7 @@ export default function Navbar() {
         </div>
       </nav>
       {location.pathname !== '/' && (
-        <div className="h-20" aria-hidden="true" />
+        <div className="h-24" aria-hidden="true" />
       )}
 
       {menuOpen && (

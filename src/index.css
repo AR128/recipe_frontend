@@ -50,23 +50,23 @@ body {
   background: #000000;
   box-shadow: none;
   transition:
-    top 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    max-width 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-radius 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    backdrop-filter 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    top 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-width 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    backdrop-filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .site-navbar.is-scrolled {
   top: 1rem;
   width: calc(100% - 2rem);
   max-width: 1120px;
-  border-color: rgba(245, 240, 232, 0.34);
+  border-color: rgba(245, 240, 232, 0.38);
   border-radius: 2rem;
-  background-color: rgba(35, 26, 21, 0.62);
+  background-color: rgba(35, 26, 21, 0.72);
   box-shadow:
     0 10px 35px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
