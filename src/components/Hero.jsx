@@ -10,41 +10,43 @@ export default function Hero({
   return (
     <section className="relative w-full min-h-[80vh] flex flex-col justify-end pb-24 md:pb-32 overflow-hidden">
       
-      {/* FULL BACKGROUND IMAGE WITH OVERLAY */}
-      <div className="absolute inset-0 z-0 bg-[#1A1A1A]">
+      {/* BACKGROUND IMAGE - Fixed blending & text readability */}
+      <div className="absolute inset-0 z-0 bg-neutral-900">
         <img 
             src={heroBg} 
             alt="Culinary presentation" 
-            className="w-full h-full object-cover opacity-60 mix-blend-overlay hover:scale-105 transition-transform duration-1000 ease-out grayscale-20"
+            className="w-full h-full object-cover opacity-60 hover:scale-105 transition-transform duration-1000 ease-out grayscale-[20%]"
         />
-        {/* Gradient overlay for perfect text contrast */}
-        <div className="absolute inset-0 bg-linear-to-t from-[#1A1A1A] via-[#1A1A1A]/40 to-transparent"></div>
+        {/* Dark overlay ensures the white text is always readable */}
+        <div className="absolute inset-0 bg-black/30"></div>
+        {/* Seamless fade-out constrained to the very bottom edge */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-neutral-50 dark:from-[#0a0a0a] to-transparent transition-colors duration-200"></div>
       </div>
 
       {/* FOREGROUND CONTENT */}
-      <div className="relative z-10 w-full max-w-350 mx-auto px-6 lg:px-12 flex flex-col items-start mt-32">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col items-start mt-32">
         
         <h1 className="text-5xl sm:text-7xl lg:text-[6rem] font-serif font-medium text-white leading-none tracking-tighter mb-8 max-w-4xl">
           The art of <br/>
-          <span className="text-[#A3A3A3] italic font-light">good food.</span>
+          <span className="text-neutral-400 italic font-light">good food.</span>
         </h1>
         
-        <p className="text-lg md:text-xl text-[#CCCCCC] font-light max-w-xl leading-relaxed mb-16">
+        <p className="text-lg md:text-xl text-neutral-300 font-light max-w-xl leading-relaxed mb-16">
           A curated space for those who respect technique. Find precise measurements, honest notes, and recipes that actually work.
         </p>
 
         {/* INLINE ARCHITECTURAL SEARCH */}
-        <div className="w-full max-w-2xl bg-white/5 backdrop-blur-sm p-8 border border-white/10">
+        <div className="w-full max-w-2xl bg-white/5 backdrop-blur-sm p-8 border border-white/10 rounded-lg">
           <div className="flex items-center gap-6 mb-6">
             <button 
               onClick={() => setSearchTab('recipes')}
-              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${searchTab === 'recipes' ? 'text-white' : 'text-[#8C8C8C] hover:text-[#CCCCCC]'}`}
+              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${searchTab === 'recipes' ? 'text-white' : 'text-neutral-400 hover:text-neutral-200'}`}
             >
               Recipes
             </button>
             <button 
               onClick={() => setSearchTab('users')}
-              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${searchTab === 'users' ? 'text-white' : 'text-[#8C8C8C] hover:text-[#CCCCCC]'}`}
+              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${searchTab === 'users' ? 'text-white' : 'text-neutral-400 hover:text-neutral-200'}`}
             >
               Chefs
             </button>

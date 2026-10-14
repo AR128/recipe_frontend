@@ -46,164 +46,84 @@ const THEMES = [
 function Settings() {
     const { theme, setTheme } = useTheme();
 
-    const cardStyle = {
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 16,
-        padding: '28px 28px',
-        marginBottom: 24,
-    };
-
     return (
-        <div style={{ background: 'var(--color-bg)', minHeight: '100vh' }}>
-            <div style={{ maxWidth: 600, margin: '0 auto', padding: '48px 20px 80px' }}>
-                {/* Page heading */}
-                <div style={{ marginBottom: 36 }}>
-                    <h1
-                        className="font-display"
-                        style={{
-                            fontSize: 32,
-                            fontWeight: 700,
-                            color: 'var(--color-text-primary)',
-                            margin: '0 0 6px',
-                        }}
-                    >
-                        Settings
-                    </h1>
-                    <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', margin: 0 }}>
-                        Customise your RecipeBite experience.
-                    </p>
+        <div className="w-full max-w-2xl mx-auto px-5 py-12 pb-20">
+            {/* Page heading */}
+            <div className="mb-9">
+                <h1 className="font-serif text-3xl font-bold text-neutral-900 dark:text-neutral-50 mb-1.5">
+                    Settings
+                </h1>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Customise your RecipeBite experience.
+                </p>
+            </div>
+
+            {/* Theme settings Card */}
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-7 mb-6 shadow-sm">
+                <h2 className="font-serif text-xl font-bold text-neutral-900 dark:text-neutral-50 mb-1.5">
+                    Appearance
+                </h2>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
+                    Choose how RecipeBite looks to you. Your preference is saved locally.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                    {THEMES.map((t) => {
+                        const isSelected = theme === t.value;
+                        return (
+                            <button
+                                key={t.value}
+                                onClick={() => setTheme(t.value)}
+                                className={`flex items-center gap-4 p-4 w-full text-left rounded-xl border-2 transition-all duration-150
+                                    ${isSelected 
+                                        ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-900 dark:border-white' 
+                                        : 'bg-transparent border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600'
+                                    }`}
+                            >
+                                {/* Icon */}
+                                <div className={`w-11 h-11 flex items-center justify-center rounded-lg shrink-0 transition-colors
+                                    ${isSelected 
+                                        ? 'bg-neutral-900 dark:bg-white text-neutral-50 dark:text-neutral-900' 
+                                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400'
+                                    }`}>
+                                    {t.icon}
+                                </div>
+
+                                {/* Labels */}
+                                <div className="flex-1">
+                                    <div className={`text-[15px] font-semibold transition-colors
+                                        ${isSelected ? 'text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                                        {t.label}
+                                    </div>
+                                    <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                        {t.description}
+                                    </div>
+                                </div>
+
+                                {/* Selected indicator */}
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors
+                                    ${isSelected 
+                                        ? 'bg-neutral-900 dark:bg-white border-none' 
+                                        : 'border-2 border-neutral-300 dark:border-neutral-600'
+                                    }`}>
+                                    {isSelected && (
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-neutral-50 dark:text-neutral-900">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    )}
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
 
-                {/* Theme settings */}
-                <div style={cardStyle}>
-                    <h2
-                        className="font-display"
-                        style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 6px' }}
-                    >
-                        Appearance
-                    </h2>
-                    <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>
-                        Choose how RecipeBite looks to you. Your preference is saved locally.
-                    </p>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {THEMES.map((t) => {
-                            const isSelected = theme === t.value;
-                            return (
-                                <button
-                                    key={t.value}
-                                    id={`theme-${t.value}`}
-                                    onClick={() => setTheme(t.value)}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 18,
-                                        padding: '16px 20px',
-                                        background: isSelected ? 'var(--color-accent-soft)' : 'var(--color-surface-2)',
-                                        border: isSelected
-                                            ? '1.5px solid var(--color-accent)'
-                                            : '1.5px solid var(--color-border)',
-                                        borderRadius: 14,
-                                        cursor: 'pointer',
-                                        textAlign: 'left',
-                                        width: '100%',
-                                        transition: 'all 0.15s ease',
-                                        fontFamily: "'Inter', sans-serif",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!isSelected) {
-                                            e.currentTarget.style.borderColor = 'var(--color-accent)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!isSelected) {
-                                            e.currentTarget.style.borderColor = 'var(--color-border)';
-                                        }
-                                    }}
-                                >
-                                    {/* Icon */}
-                                    <div
-                                        style={{
-                                            width: 44,
-                                            height: 44,
-                                            borderRadius: 12,
-                                            background: isSelected ? 'var(--color-accent)' : 'var(--color-surface)',
-                                            border: '1px solid var(--color-border)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: isSelected ? '#fff' : 'var(--color-text-secondary)',
-                                            flexShrink: 0,
-                                            transition: 'all 0.15s ease',
-                                        }}
-                                    >
-                                        {t.icon}
-                                    </div>
-
-                                    {/* Labels */}
-                                    <div style={{ flex: 1 }}>
-                                        <div
-                                            style={{
-                                                fontSize: 15,
-                                                fontWeight: 600,
-                                                color: isSelected ? 'var(--color-accent)' : 'var(--color-text-primary)',
-                                            }}
-                                        >
-                                            {t.label}
-                                        </div>
-                                        <div
-                                            style={{
-                                                fontSize: 12,
-                                                color: 'var(--color-text-muted)',
-                                                marginTop: 2,
-                                            }}
-                                        >
-                                            {t.description}
-                                        </div>
-                                    </div>
-
-                                    {/* Selected indicator */}
-                                    <div
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: '50%',
-                                            border: isSelected ? 'none' : '2px solid var(--color-border)',
-                                            background: isSelected ? 'var(--color-accent)' : 'transparent',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            flexShrink: 0,
-                                            transition: 'all 0.15s ease',
-                                        }}
-                                    >
-                                        {isSelected && (
-                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3">
-                                                <polyline points="20 6 9 17 4 12"/>
-                                            </svg>
-                                        )}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Current theme feedback */}
-                    <p
-                        style={{
-                            marginTop: 16,
-                            fontSize: 12,
-                            color: 'var(--color-text-muted)',
-                            textAlign: 'center',
-                        }}
-                    >
-                        Currently using:{' '}
-                        <strong style={{ color: 'var(--color-text-secondary)' }}>
-                            {THEMES.find((t) => t.value === theme)?.label}
-                        </strong>
-                    </p>
-                </div>
+                {/* Current theme feedback */}
+                <p className="mt-6 text-xs text-center text-neutral-500 dark:text-neutral-400">
+                    Currently using:{' '}
+                    <strong className="text-neutral-800 dark:text-neutral-200">
+                        {THEMES.find((t) => t.value === theme)?.label}
+                    </strong>
+                </p>
             </div>
         </div>
     );

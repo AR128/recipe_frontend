@@ -25,7 +25,6 @@ function CommentSection({ slug }) {
 
     const [prevSlug, setPrevSlug] = useState(null);
 
-    // Reset loading/error state during render when slug changes (avoids synchronous setState in useEffect)
     if (slug && slug !== prevSlug) {
         setPrevSlug(slug);
         setLoadingComments(true);
@@ -83,34 +82,12 @@ function CommentSection({ slug }) {
         }
     };
 
-    const sectionStyle = {
-        borderTop: '1px solid var(--color-border)',
-        paddingTop: 36,
-        marginTop: 36,
-    };
-
-    const headingStyle = {
-        fontFamily: "'Playfair Display', Georgia, serif",
-        fontSize: 22,
-        fontWeight: 700,
-        color: 'var(--color-text-primary)',
-        marginBottom: 24,
-    };
-
     return (
-        <section style={sectionStyle} id="comments">
-            <h2 style={headingStyle}>
+        <section className="pt-9 mt-9 border-t border-neutral-200 dark:border-neutral-800 transition-colors" id="comments">
+            <h2 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white mb-6 transition-colors">
                 Comments
                 {comments.length > 0 && (
-                    <span
-                        style={{
-                            fontFamily: "'Inter', sans-serif",
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: 'var(--color-text-muted)',
-                            marginLeft: 10,
-                        }}
-                    >
+                    <span className="font-sans text-sm font-medium text-neutral-500 dark:text-neutral-400 ml-3 transition-colors">
                         ({comments.length})
                     </span>
                 )}
@@ -120,49 +97,17 @@ function CommentSection({ slug }) {
             {isAuthenticated ? (
                 <form
                     onSubmit={handleSubmit}
-                    style={{
-                        background: 'var(--color-surface-2)',
-                        borderRadius: 14,
-                        padding: 20,
-                        marginBottom: 32,
-                        border: '1px solid var(--color-border)',
-                    }}
+                    className="bg-neutral-50 dark:bg-neutral-900/50 rounded-xl p-5 mb-8 border border-neutral-200 dark:border-neutral-800 transition-colors"
                 >
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 10,
-                            marginBottom: 12,
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: '50%',
-                                background: 'var(--color-accent)',
-                                color: '#fff',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: 13,
-                                fontWeight: 700,
-                                flexShrink: 0,
-                            }}
-                        >
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-9 h-9 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex items-center justify-center text-sm font-bold shrink-0 transition-colors">
                             {(user?.name || user?.username || '?').slice(0, 2).toUpperCase()}
                         </div>
-                        <span
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: 'var(--color-text-primary)',
-                            }}
-                        >
+                        <span className="text-sm font-semibold text-neutral-900 dark:text-white transition-colors">
                             {user?.name || user?.username}
                         </span>
                     </div>
+                    
                     <textarea
                         id="comment-input"
                         value={text}
@@ -171,73 +116,22 @@ function CommentSection({ slug }) {
                         rows={3}
                         maxLength={1000}
                         required
-                        style={{
-                            width: '100%',
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 10,
-                            padding: '10px 14px',
-                            fontSize: 14,
-                            color: 'var(--color-text-primary)',
-                            resize: 'vertical',
-                            outline: 'none',
-                            transition: 'border-color 0.15s ease',
-                            fontFamily: "'Inter', sans-serif",
-                        }}
-                        onFocus={(e) => (e.target.style.borderColor = 'var(--color-accent)')}
-                        onBlur={(e) => (e.target.style.borderColor = 'var(--color-border)')}
+                        className="w-full bg-white dark:bg-[#0a0a0a] border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-3 text-sm text-neutral-900 dark:text-white resize-y outline-none focus:border-neutral-900 dark:focus:border-white transition-colors font-sans placeholder-neutral-400 dark:placeholder-neutral-500"
                     />
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginTop: 10,
-                            gap: 12,
-                        }}
-                    >
-                        <span
-                            style={{
-                                fontSize: 11,
-                                color: 'var(--color-text-muted)',
-                            }}
-                        >
+                    
+                    <div className="flex items-center justify-between mt-3 gap-3">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400 transition-colors">
                             {text.length}/1000
                         </span>
                         <button
                             id="submit-comment-btn"
                             type="submit"
                             disabled={submitting || !text.trim()}
-                            style={{
-                                background: submitting || !text.trim()
-                                    ? 'var(--color-border)'
-                                    : 'var(--color-accent)',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: 8,
-                                padding: '9px 22px',
-                                fontSize: 13,
-                                fontWeight: 600,
-                                cursor: submitting || !text.trim() ? 'not-allowed' : 'pointer',
-                                transition: 'background 0.15s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                            }}
+                            className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-none rounded-lg px-5 py-2 text-sm font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
                         >
                             {submitting ? (
                                 <>
-                                    <span
-                                        style={{
-                                            width: 12,
-                                            height: 12,
-                                            border: '2px solid rgba(255,255,255,0.4)',
-                                            borderTopColor: '#fff',
-                                            borderRadius: '50%',
-                                            display: 'inline-block',
-                                        }}
-                                        className="animate-spin"
-                                    />
+                                    <span className="w-4 h-4 border-2 border-white/40 dark:border-black/40 border-t-white dark:border-t-black rounded-full animate-spin" />
                                     Posting...
                                 </>
                             ) : (
@@ -245,106 +139,43 @@ function CommentSection({ slug }) {
                             )}
                         </button>
                     </div>
+                    
                     {submitError && (
-                        <p
-                            style={{
-                                marginTop: 8,
-                                fontSize: 12,
-                                color: 'var(--color-accent)',
-                            }}
-                        >
-                            {submitError}
-                        </p>
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400 transition-colors">{submitError}</p>
                     )}
                     {submitSuccess && (
-                        <p
-                            style={{
-                                marginTop: 8,
-                                fontSize: 12,
-                                color: 'var(--color-success)',
-                            }}
-                        >
-                            ✓ Comment posted successfully!
-                        </p>
+                        <p className="mt-2 text-sm text-green-600 dark:text-green-400 transition-colors">✓ Comment posted successfully!</p>
                     )}
                 </form>
             ) : (
                 /* Auth gate */
-                <div
-                    style={{
-                        background: 'var(--color-surface-2)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 14,
-                        padding: '24px 24px',
-                        marginBottom: 32,
-                    }}
-                >
-                    <div style={{ marginBottom: 12 }}>
+                <div className="bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 rounded-xl p-6 mb-8 transition-colors">
+                    <div className="mb-3">
                         <textarea
                             onClick={handleUnauthClick}
                             onFocus={handleUnauthClick}
                             readOnly
                             placeholder="Leave a comment... (Click to Log In)"
                             rows={2}
-                            style={{
-                                width: '100%',
-                                background: 'var(--color-surface)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 10,
-                                padding: '10px 14px',
-                                fontSize: 14,
-                                color: 'var(--color-text-muted)',
-                                cursor: 'pointer',
-                                resize: 'none',
-                                fontFamily: "'Inter', sans-serif",
-                            }}
+                            className="w-full bg-white dark:bg-[#0a0a0a] border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400 cursor-pointer resize-none font-sans transition-colors"
                         />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                        <p
-                            style={{
-                                fontSize: 13,
-                                color: 'var(--color-text-secondary)',
-                                margin: 0,
-                            }}
-                        >
+                    <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400 m-0 transition-colors hidden sm:block">
                             Join the conversation — log in to leave a comment.
                         </p>
-                        <div style={{ display: 'flex', gap: 10 }}>
+                        <div className="flex gap-3 w-full sm:w-auto">
                             <Link
                                 id="comment-login-link"
                                 to="/login"
-                                style={{
-                                    background: 'var(--color-accent)',
-                                    color: '#fff',
-                                    textDecoration: 'none',
-                                    borderRadius: 8,
-                                    padding: '8px 20px',
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    transition: 'background 0.15s ease',
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-accent)')}
+                                className="flex-1 sm:flex-none text-center bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg px-5 py-2 text-sm font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
                             >
                                 Log In
                             </Link>
                             <Link
                                 id="comment-signup-link"
                                 to="/signup"
-                                style={{
-                                    background: 'transparent',
-                                    color: 'var(--color-text-primary)',
-                                    textDecoration: 'none',
-                                    borderRadius: 8,
-                                    padding: '8px 20px',
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    border: '1px solid var(--color-border)',
-                                    transition: 'background 0.15s ease',
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-surface)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                                className="flex-1 sm:flex-none text-center bg-transparent text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700 rounded-lg px-5 py-2 text-sm font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                             >
                                 Sign Up
                             </Link>
@@ -353,116 +184,55 @@ function CommentSection({ slug }) {
                 </div>
             )}
 
-
             {/* Comment list */}
             {loadingComments ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="flex flex-col gap-4">
                     {[1, 2].map((i) => (
-                        <div key={i} style={{ display: 'flex', gap: 12 }}>
-                            <div
-                                className="skeleton"
-                                style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0 }}
-                            />
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                <div className="skeleton" style={{ width: 120, height: 12 }} />
-                                <div className="skeleton" style={{ width: '90%', height: 12 }} />
-                                <div className="skeleton" style={{ width: '60%', height: 12 }} />
+                        <div key={i} className="flex gap-3 animate-pulse">
+                            <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0 transition-colors" />
+                            <div className="flex-1 flex flex-col gap-2 pt-1">
+                                <div className="w-32 h-3 bg-neutral-200 dark:bg-neutral-800 rounded transition-colors" />
+                                <div className="w-[90%] h-3 bg-neutral-200 dark:bg-neutral-800 rounded transition-colors" />
+                                <div className="w-[60%] h-3 bg-neutral-200 dark:bg-neutral-800 rounded transition-colors" />
                             </div>
                         </div>
                     ))}
                 </div>
             ) : commentsError ? (
-                <p style={{ color: 'var(--color-accent)', fontSize: 14 }}>{commentsError}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 transition-colors">{commentsError}</p>
             ) : comments.length === 0 ? (
-                <div
-                    style={{
-                        textAlign: 'center',
-                        padding: '40px 20px',
-                        color: 'var(--color-text-muted)',
-                    }}
-                >
-                    <div style={{ fontSize: 36, marginBottom: 12 }}>💬</div>
-                    <p style={{ fontSize: 14 }}>
-                        No comments yet. Be the first to share your thoughts!
-                    </p>
+                <div className="text-center py-10 px-5 text-neutral-500 dark:text-neutral-400 transition-colors">
+                    <div className="text-4xl mb-3">💬</div>
+                    <p className="text-sm">No comments yet. Be the first to share your thoughts!</p>
                 </div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div className="flex flex-col">
                     {comments.map((comment, idx) => (
                         <div
                             key={comment._id}
-                            className="animate-fade-in"
-                            style={{
-                                display: 'flex',
-                                gap: 14,
-                                padding: '18px 0',
-                                borderBottom:
-                                    idx < comments.length - 1
-                                        ? '1px solid var(--color-border)'
-                                        : 'none',
-                                animationDelay: `${idx * 0.05}s`,
-                            }}
+                            className={`flex gap-4 py-5 animate-fade-in ${
+                                idx < comments.length - 1 ? 'border-b border-neutral-200 dark:border-neutral-800' : ''
+                            } transition-colors`}
+                            style={{ animationDelay: `${idx * 0.05}s` }}
                         >
                             {/* Avatar */}
                             <div
-                                style={{
-                                    width: 38,
-                                    height: 38,
-                                    borderRadius: '50%',
-                                    background: `hsl(${(comment.user?.username?.charCodeAt(0) * 31) % 360}, 55%, 55%)`,
-                                    color: '#fff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    flexShrink: 0,
-                                }}
+                                className="w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-bold shrink-0"
+                                style={{ background: `hsl(${(comment.user?.username?.charCodeAt(0) * 31) % 360}, 55%, 55%)` }}
                             >
-                                {(
-                                    comment.user?.name ||
-                                    comment.user?.username ||
-                                    '?'
-                                )
-                                    .slice(0, 2)
-                                    .toUpperCase()}
+                                {(comment.user?.name || comment.user?.username || '?').slice(0, 2).toUpperCase()}
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'baseline',
-                                        gap: 10,
-                                        marginBottom: 6,
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            fontWeight: 600,
-                                            fontSize: 14,
-                                            color: 'var(--color-text-primary)',
-                                        }}
-                                    >
+                            
+                            <div className="flex-1">
+                                <div className="flex items-baseline gap-3 mb-2">
+                                    <span className="font-semibold text-sm text-neutral-900 dark:text-white transition-colors">
                                         {comment.user?.name || comment.user?.username || 'Anonymous'}
                                     </span>
-                                    <span
-                                        style={{
-                                            fontSize: 11,
-                                            color: 'var(--color-text-muted)',
-                                        }}
-                                    >
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400 transition-colors">
                                         {formatDate(comment.createdAt)}
                                     </span>
                                 </div>
-                                <p
-                                    style={{
-                                        fontSize: 14,
-                                        color: 'var(--color-text-secondary)',
-                                        lineHeight: 1.6,
-                                        margin: 0,
-                                        whiteSpace: 'pre-wrap',
-                                    }}
-                                >
+                                <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap m-0 transition-colors">
                                     {comment.text}
                                 </p>
                             </div>
