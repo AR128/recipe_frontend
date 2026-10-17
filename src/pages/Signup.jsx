@@ -27,10 +27,10 @@ export default function Signup() {
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-white dark:bg-[#0a0a0a] font-sans text-neutral-900 dark:text-white overflow-hidden transition-colors duration-200">
+    <div className="min-h-screen md:h-screen flex flex-col md:flex-row bg-white dark:bg-[#0a0a0a] font-sans text-neutral-900 dark:text-white md:overflow-hidden transition-colors duration-200">
       
       {/* FORM SIDE (Left) */}
-      <div className="w-full md:w-1/2 h-[70vh] md:h-screen overflow-y-auto flex items-center justify-center p-6 md:p-8 lg:p-12 order-2 md:order-1">
+      <div className="w-full md:w-1/2 flex-1 md:h-screen overflow-y-auto flex items-center justify-center p-6 md:p-8 lg:p-12 order-2 md:order-1">
         <div className="w-full max-w-sm m-auto">
           
           <Link to="/" className="font-serif text-3xl font-bold text-black dark:text-white tracking-tight block mb-6 hover:opacity-70 transition-opacity">
@@ -114,7 +114,7 @@ export default function Signup() {
       </div>
 
       {/* IMAGE SIDE (Right) */}
-      <div className="w-full md:w-1/2 h-[30vh] md:h-screen relative shrink-0 order-1 md:order-2">
+      <div className="w-full md:w-1/2 h-40 sm:h-52 md:h-screen relative shrink-0 order-1 md:order-2">
         <img
           src={signupImg}
           alt="Signup background"

@@ -200,21 +200,7 @@ function EditRecipeModal({ isOpen, onClose, recipe, onRecipeUpdated }) {
             onClick={onClose}
         >
             <div
-                style={{
-                    background: 'var(--color-surface, #1e293b)',
-                    color: 'var(--color-text-primary, #f8fafc)',
-                    borderRadius: 20,
-                    width: '100%',
-                    maxWidth: 780,
-                    maxHeight: '92vh',
-                    overflowY: 'auto',
-                    border: '1px solid var(--color-border, #334155)',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    padding: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 20,
-                }}
+                className="bg-[#1e293b] text-[#f8fafc] rounded-2xl w-full max-w-[780px] max-h-[92vh] overflow-y-auto border border-[#334155] shadow-2xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-5"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Modal Header */}
@@ -267,7 +253,7 @@ function EditRecipeModal({ isOpen, onClose, recipe, onRecipeUpdated }) {
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div>
                                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
                                     Category
@@ -361,7 +347,7 @@ function EditRecipeModal({ isOpen, onClose, recipe, onRecipeUpdated }) {
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
                             <div>
                                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Prep Time</label>
                                 <input
@@ -409,7 +395,8 @@ function EditRecipeModal({ isOpen, onClose, recipe, onRecipeUpdated }) {
                                         placeholder="Amount"
                                         value={ing.amount}
                                         onChange={(e) => handleIngredientChange(idx, 'amount', e.target.value)}
-                                        style={{ width: 110, padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text-primary)', fontSize: 13 }}
+                                        className="w-20 sm:w-28 shrink-0"
+                                        style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text-primary)', fontSize: 13 }}
                                     />
                                     <input
                                         type="text"
@@ -474,18 +461,18 @@ function EditRecipeModal({ isOpen, onClose, recipe, onRecipeUpdated }) {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-2.5 pt-4 border-t border-slate-700">
                         <button
                             type="button"
                             onClick={onClose}
-                            style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text-primary)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-600 bg-transparent text-white text-sm font-semibold cursor-pointer hover:bg-slate-800 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
+                            className="w-full sm:w-auto px-6 py-2.5 rounded-xl border-none bg-[var(--color-accent,#f97316)] text-white text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity shadow-md disabled:opacity-50"
                         >
                             {submitting ? 'Saving...' : 'Save Changes'}
                         </button>

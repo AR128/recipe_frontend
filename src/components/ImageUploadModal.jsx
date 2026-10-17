@@ -196,6 +196,27 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
         setIsMouseDown(false);
     };
 
+    // Mobile touch pan controls
+    const handleTouchStart = (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        setIsMouseDown(true);
+        setStartPan({ x: touch.clientX - panOffset.x, y: touch.clientY - panOffset.y });
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isMouseDown || !e.touches || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        setPanOffset({
+            x: touch.clientX - startPan.x,
+            y: touch.clientY - startPan.y,
+        });
+    };
+
+    const handleTouchEnd = () => {
+        setIsMouseDown(false);
+    };
+
     // Export final edited photo & upload to Cloudinary
     const handleCropSubmit = async () => {
         const img = loadedImgRef.current;
@@ -285,21 +306,7 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
             onClick={handleClose}
         >
             <div
-                style={{
-                    background: 'var(--color-surface, #1e293b)',
-                    color: 'var(--color-text-primary, #f8fafc)',
-                    borderRadius: 20,
-                    width: '100%',
-                    maxWidth: 720,
-                    maxHeight: '92vh',
-                    overflowY: 'auto',
-                    border: '1px solid var(--color-border, #334155)',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    padding: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 20,
-                }}
+                className="bg-[#1e293b] text-[#f8fafc] rounded-2xl w-full max-w-[720px] max-h-[92vh] overflow-y-auto border border-[#334155] shadow-2xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-5"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Modal Header */}
@@ -409,11 +416,16 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
                                 alignItems: 'center',
                                 cursor: isMouseDown ? 'grabbing' : 'grab',
                                 userSelect: 'none',
+                                touchAction: 'none',
                             }}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
                             onMouseLeave={handleMouseUp}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            onTouchCancel={handleTouchEnd}
                         >
                             <canvas
                                 ref={canvasRef}
@@ -434,7 +446,7 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
                                     pointerEvents: 'none',
                                 }}
                             >
-                                💡 Tip: Click & drag image to position food
+                                💡 Tip: Drag or swipe to position food
                             </div>
                         </div>
 
@@ -469,7 +481,7 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
                             </div>
 
                             {/* Rotation, Zoom & Flip Controls */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--color-text-secondary, #94a3b8)' }}>
                                         ROTATION & FLIP
@@ -555,38 +567,22 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
                         )}
 
                         {/* Bottom Actions */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 16, borderTop: '1px solid var(--color-border, #334155)' }}>
+                        <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mt-2 pt-4 border-t border-[#334155]">
                             <button
                                 type="button"
                                 disabled={uploading}
                                 onClick={() => setImageSrc(null)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--color-text-secondary, #94a3b8)',
-                                    fontSize: 13,
-                                    cursor: uploading ? 'not-allowed' : 'pointer',
-                                    textDecoration: 'underline',
-                                }}
+                                className="text-center sm:text-left text-xs sm:text-sm text-slate-400 hover:text-white underline cursor-pointer py-1"
                             >
                                 ← Choose Different File
                             </button>
 
-                            <div style={{ display: 'flex', gap: 12 }}>
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
                                 <button
                                     type="button"
                                     disabled={uploading}
                                     onClick={handleClose}
-                                    style={{
-                                        padding: '10px 18px',
-                                        borderRadius: 10,
-                                        border: '1px solid var(--color-border, #475569)',
-                                        background: 'transparent',
-                                        color: 'var(--color-text-primary, #fff)',
-                                        fontSize: 14,
-                                        fontWeight: 600,
-                                        cursor: uploading ? 'not-allowed' : 'pointer',
-                                    }}
+                                    className="flex-1 sm:flex-initial text-center px-4 py-2.5 rounded-xl border border-slate-600 bg-transparent text-white text-sm font-semibold cursor-pointer hover:bg-slate-800 transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -594,26 +590,12 @@ function ImageUploadModal({ isOpen, onClose, onSelectImage }) {
                                     type="button"
                                     disabled={uploading}
                                     onClick={handleCropSubmit}
-                                    style={{
-                                        padding: '10px 24px',
-                                        borderRadius: 10,
-                                        border: 'none',
-                                        background: 'var(--color-accent, #f97316)',
-                                        color: '#fff',
-                                        fontSize: 14,
-                                        fontWeight: 700,
-                                        cursor: uploading ? 'not-allowed' : 'pointer',
-                                        opacity: uploading ? 0.7 : 1,
-                                        boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 8,
-                                    }}
+                                    className="flex-1 sm:flex-initial text-center px-6 py-2.5 rounded-xl bg-[#f97316] text-white text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity shadow-md flex items-center justify-center gap-2"
                                 >
                                     {uploading ? (
                                         <>
                                             <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                                            Uploading to Cloudinary...
+                                            Uploading...
                                         </>
                                     ) : (
                                         'Submit Photo'

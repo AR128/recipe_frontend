@@ -1,83 +1,102 @@
-import heroBg from '../assets/hero-bg.jpg';
+import { Link } from "react-router";
+import heroBg from "../assets/hero-bg.jpg";
 
-export default function Hero({ 
-  search, 
-  setSearch, 
-  searchRef, 
-  searchTab, 
-  setSearchTab 
-}) {
+export default function Hero() {
   return (
-    <section className="relative w-full min-h-[80vh] flex flex-col justify-end pb-24 md:pb-32 overflow-hidden">
-      
-      {/* BACKGROUND IMAGE - Fixed blending & text readability */}
-      <div className="absolute inset-0 z-0 bg-neutral-900">
-        <img 
-            src={heroBg} 
-            alt="Culinary presentation" 
-            className="w-full h-full object-cover opacity-60 hover:scale-105 transition-transform duration-1000 ease-out grayscale-[20%]"
+    <section className="relative w-full min-h-[100svh] flex flex-col justify-center pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 overflow-hidden">
+      {/* BACKGROUND IMAGE & ATMOSPHERIC OVERLAYS */}
+      <div className="absolute inset-0 z-0 bg-[#0d0d0c]">
+        <img
+          src={heroBg}
+          alt="Community food bloggers kitchen table"
+          className="w-full h-full object-cover opacity-60 scale-102 hover:scale-105 transition-transform duration-1000 ease-out"
         />
-        {/* Dark overlay ensures the white text is always readable */}
-        <div className="absolute inset-0 bg-black/30"></div>
-        {/* Seamless fade-out constrained to the very bottom edge */}
-        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-neutral-50 dark:from-[#0a0a0a] to-transparent transition-colors duration-200"></div>
+        {/* Deep cinematic gradients */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-black/10" />
+        <div className="absolute inset-0 bg-radial from-transparent via-black/10 to-black/40" />
+        {/* Seamless bottom transition */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-neutral-50 dark:from-[#0a0a0a] to-transparent transition-colors duration-200" />
       </div>
 
-      {/* FOREGROUND CONTENT */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12 flex flex-col items-start mt-50">
-        
-        <h1 className="text-5xl sm:text-7xl lg:text-[6rem] font-serif font-medium text-white leading-none tracking-tighter mb-8 max-w-4xl">
-          the <span class="text-[rgb(201,169,110)]">Art</span> of <br/>
-          <span className="text-neutral-400 italic font-light">good food.</span>
+      {/* FOREGROUND COMMUNITY BLOGGING CONTENT */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col items-start">
+        {/* Hero Title */}
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-[5.2rem] font-serif font-medium text-white leading-[1.12] sm:leading-[1.08] tracking-tight mb-4 sm:mb-6 max-w-4xl drop-shadow-md">
+          Find your next favorite. <br />
+          <span className="italic text-[#E7CA8D] font-normal underline decoration-[#C9A96E]/40 decoration-wavy underline-offset-8">
+            Made to be shared.
+          </span>
         </h1>
-        
-        <p className="text-lg md:text-xl text-neutral-300 font-light max-w-xl leading-relaxed mb-16">
-          A curated space for those who respect technique. Find precise measurements, honest notes, and recipes that actually work.
+
+        {/* Subtitle */}
+        <p className="text-sm sm:text-lg md:text-xl text-neutral-200 font-light max-w-2xl leading-relaxed mb-8 sm:mb-10 drop-shadow-sm">
+          Explore home-cooked recipes from food lovers everywhere. Share your
+          creations and save the dishes you love.
         </p>
 
-        {/* INLINE ARCHITECTURAL SEARCH */}
-        <div className="w-full max-w-2xl bg-white/5 backdrop-blur-sm p-8 border border-white/10 rounded-lg">
-          <div className="flex items-center gap-6 mb-6">
-            <button 
-              onClick={() => setSearchTab('recipes')}
-              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${searchTab === 'recipes' ? 'text-white' : 'text-neutral-400 hover:text-neutral-200'}`}
-            >
-              Recipes
-            </button>
-            <button 
-              onClick={() => setSearchTab('users')}
-              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${searchTab === 'users' ? 'text-white' : 'text-neutral-400 hover:text-neutral-200'}`}
-            >
-              Chefs
-            </button>
-          </div>
-
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="flex items-end border-b border-white/30 focus-within:border-white transition-colors pb-3"
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-8 sm:mb-12 w-full sm:w-auto">
+          <Link
+            to="/create-post"
+            className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#121210] font-bold text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 shadow-xl shadow-[#C9A96E]/20 transition-all text-center"
           >
-            <input
-              ref={searchRef}
-              type="text"
-              aria-label={searchTab === 'recipes' ? 'Search recipes' : 'Search chefs'}
-              placeholder={searchTab === 'recipes' ? "What are you cooking today?" : "Find a creator..."}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent border-none outline-none text-2xl font-serif text-white placeholder:text-white/40"
-            />
-            <button
-              type="submit"
-              aria-label="Submit search"
-              className="shrink-0 text-white hover:opacity-60 transition-opacity ml-4 pb-1"
-            >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </button>
-          </form>
+            <span className="text-base leading-none">+</span>
+            <span>Share Your Recipe</span>
+          </Link>
+
+          <a
+            href="#trending-recipe"
+            className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 sm:py-4 rounded-full bg-white/15 hover:bg-white/20 border border-white/25 text-white font-bold text-xs uppercase tracking-wider backdrop-blur-md hover:border-[#C9A96E] transition-all shadow-lg shadow-black/20 text-center"
+          >
+            <span>Top Trending Dish</span>
+            <span>↓</span>
+          </a>
         </div>
 
+        {/* Feature Highlights Strip */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 sm:pt-8 border-t border-white/10 w-full max-w-3xl">
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-full bg-[#C9A96E]/20 text-[#E7CA8D] flex items-center justify-center text-sm font-bold border border-[#C9A96E]/30">
+              1
+            </span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-white">
+                Share Dishes
+              </p>
+              <p className="text-xs text-neutral-400 font-light">
+                Post your unique recipes
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-full bg-[#C9A96E]/20 text-[#E7CA8D] flex items-center justify-center text-sm font-bold border border-[#C9A96E]/30">
+              2
+            </span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-white">
+                Save &amp; Bookmark
+              </p>
+              <p className="text-xs text-neutral-400 font-light">
+                Sync favorites to profile
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-full bg-[#C9A96E]/20 text-[#E7CA8D] flex items-center justify-center text-sm font-bold border border-[#C9A96E]/30">
+              3
+            </span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-white">
+                Connect &amp; Discuss
+              </p>
+              <p className="text-xs text-neutral-400 font-light">
+                Learn from home cooks
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

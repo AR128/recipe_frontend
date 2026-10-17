@@ -1,35 +1,38 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import loginImg from '../assets/Login-image.avif';
-import { useAuth } from '../context/useAuth';
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
+import loginImg from "../assets/Login-image.avif";
+import { useAuth } from "../context/useAuth";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate(location.state?.from || "/", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(
+        err.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-white dark:bg-[#0a0a0a] font-sans text-neutral-900 dark:text-white overflow-hidden transition-colors duration-200">
-      
+    <div className="min-h-screen md:h-screen flex flex-col md:flex-row bg-white dark:bg-[#0a0a0a] font-sans text-neutral-900 dark:text-white md:overflow-hidden transition-colors duration-200">
       {/* IMAGE SIDE (Left) */}
-      <div className="w-full md:w-1/2 h-[30vh] md:h-screen relative shrink-0">
+      <div className="w-full md:w-1/2 h-40 sm:h-52 md:h-screen relative shrink-0">
         <img
           src={loginImg}
           alt="Login background"
@@ -39,10 +42,12 @@ export default function Login() {
       </div>
 
       {/* FORM SIDE (Right) */}
-      <div className="w-full md:w-1/2 h-[70vh] md:h-screen overflow-y-auto flex items-center justify-center p-6 md:p-12 lg:p-16">
+      <div className="w-full md:w-1/2 flex-1 md:h-screen overflow-y-auto flex items-center justify-center p-6 md:p-12 lg:p-16">
         <div className="w-full max-w-sm m-auto">
-          
-          <Link to="/" className="font-serif text-3xl font-bold text-black dark:text-white tracking-tight block mb-10 hover:opacity-70 transition-opacity">
+          <Link
+            to="/"
+            className="font-serif text-3xl font-bold text-black dark:text-white tracking-tight block mb-10 hover:opacity-70 transition-opacity"
+          >
             Poodiest.
           </Link>
 
@@ -93,17 +98,19 @@ export default function Login() {
               disabled={loading}
               className="w-full bg-black dark:bg-white text-white dark:text-black py-3.5 mt-4 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Authenticating...' : 'Log in'}
+              {loading ? "Authenticating..." : "Log in"}
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-neutral-500 dark:text-neutral-400 pb-8 md:pb-0 transition-colors">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-black dark:text-white font-medium hover:underline transition-colors">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="text-black dark:text-white font-medium hover:underline transition-colors"
+            >
               Sign up
             </Link>
           </p>
-          
         </div>
       </div>
     </div>

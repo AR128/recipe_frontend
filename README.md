@@ -1,89 +1,91 @@
-# 🎨 Poodiest - Frontend Web Application
+# Poodiest
 
-The frontend client for Poodiest is a responsive web application built with **React 19**, **Vite**, **Tailwind CSS v4**, and **React Router v8**.
+Poodiest is a recipe-sharing web application for discovering dishes, publishing recipes, and connecting with other home cooks. The web application is built with React 19, Vite, and Tailwind CSS 4, and communicates with the Poodiest backend API.
 
----
+## Features
 
-## 🚀 Key Features
+- Browse and search published recipes, including category and trending views
+- View recipe ingredients, cooking steps, author profiles, and comments
+- Create and manage recipes, with image uploads
+- Register, sign in, and manage account and profile settings
+- Save and like recipes, and participate in recipe discussions
+- Switch between light and dark themes
+- Responsive layouts for desktop and mobile
 
-- **Dynamic Recipe Discovery**: Grid and card layouts for exploring recipes, filtered by category tags or searched via instant live query.
-- **Interactive Recipe Detail View**: Displays ingredients, step-by-step cooking instructions, prep/cook times, servings, and interactive comment sections.
-- **Recipe Management**: Create, edit, and delete recipe posts with live image upload previews powered by Cloudinary.
-- **User Authentication & Session Handling**: Auth forms for Login/Signup, automatic token restoration, and Axios interceptors for handling 401 token refresh automatically.
-- **User Profiles & Account Settings**: Customize avatar, display name, bio, and change password.
-- **Theme Switcher**: Dark/Light mode support with CSS custom variables and persistent theme context.
-- **Responsive Navigation**: Full desktop navbar + mobile drawer navigation.
+## Requirements
 
----
+- Node.js and npm
+- The Poodiest backend API running locally or at a configured URL
 
-## 📁 Project Structure
+## Quick start
 
-```text
-frontend/
-├── src/
-│   ├── api/
-│   │   ├── axios.js           # Main Axios instance for authenticated user endpoints
-│   │   └── recipeApi.js       # Public & authenticated recipe service helpers
-│   ├── components/
-│   │   ├── CommentSection.jsx # Recipe page interactive comment list & input
-│   │   ├── EditRecipeModal.jsx# Modal for editing published recipes
-│   │   ├── ImageUploadModal.jsx# Modal interface for uploading images
-│   │   ├── Navbar.jsx         # Header navbar with mobile drawer navigation
-│   │   ├── ProtectedRoute.jsx # Route guard for authenticated pages
-│   │   ├── RecipeCard.jsx     # Recipe feed display card
-│   │   └── UserSearchModal.jsx# User search lookup modal
-│   ├── context/
-│   │   ├── AuthContext.jsx    # Authentication provider & state
-│   │   └── ThemeContext.jsx   # Dark/Light theme provider & state
-│   ├── pages/
-│   │   ├── Account.jsx        # User account management & personal posts
-│   │   ├── CreatePost.jsx     # Recipe creation page
-│   │   ├── Login.jsx          # Login view
-│   │   ├── RecipeDetail.jsx   # Single recipe page
-│   │   ├── RecipeFeed.jsx     # Homepage recipe feed & discovery
-│   │   ├── Settings.jsx       # Preferences & settings
-│   │   ├── Signup.jsx         # Signup view
-│   │   └── UserProfile.jsx    # Public author profile page
-│   ├── App.jsx                # Layout wrapper component
-│   ├── index.css              # Global styles & Tailwind CSS directives
-│   └── main.jsx               # App entry point & Router configuration
-├── .env                       # Environment variables
-└── package.json
+From the repository root:
+
+```bash
+cd frontend
+npm install
 ```
 
----
+Create `frontend/.env` with the backend URL, then start the development server:
 
-## ⚙️ Environment Variables
+```bash
+npm run dev
+```
 
-Create a `.env` file in the `frontend/` directory:
+Vite serves the app at [http://localhost:5173](http://localhost:5173) by default.
+
+## Configuration
 
 ```env
 VITE_BACKEND_URL=http://localhost:3000
 ```
 
----
+Set `VITE_BACKEND_URL` to the base URL of the running backend (without the `/api` path). The backend must allow the frontend origin through its `CORS_ORIGIN` configuration.
 
-## 🏃 Running the Client
+## Application routes
 
-### Development Mode
-```bash
-npm run dev
+| Route | Page | Access |
+| --- | --- | --- |
+| `/` | Recipe feed | Public |
+| `/recipes` | All recipes | Public |
+| `/recipe/:slug` or `/recipes/:slug` | Recipe details | Public |
+| `/user/:username` or `/profile/:username` | Public user profile | Public |
+| `/login` | Sign in | Public |
+| `/signup` | Create an account | Public |
+| `/account` | Account and personal recipes | Sign-in required |
+| `/create-post` | Create a recipe | Sign-in required |
+| `/settings` | Account settings | Sign-in required |
+
+## Available commands
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Build the production bundle |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format frontend files with Prettier |
+| `npm run check` | Check frontend formatting with Prettier |
+
+## Project structure
+
+```text
+frontend/
+├── src/
+│   ├── api/          # Backend API clients
+│   ├── assets/       # Images and other static assets
+│   ├── components/   # Shared UI components
+│   ├── context/      # Authentication and theme state
+│   ├── hooks/        # Reusable React hooks
+│   ├── pages/        # Route-level views
+│   ├── utils/        # Shared utilities
+│   ├── App.jsx       # Shared application layout
+│   └── main.jsx      # React entry point and route configuration
+├── index.html
+├── package.json
+└── vite.config.js
 ```
-Open `http://localhost:5173` in your browser.
 
-### Build for Production
-```bash
-npm run build
-```
+## Related documentation
 
-### Preview Production Build
-```bash
-npm run preview
-```
-
-### Code Quality Commands
-```bash
-npm run lint     # Run ESLint check
-npm run format   # Format code using Prettier
-npm run check    # Verify Prettier compliance
-```
+- [Backend API setup and endpoints](../backend/README.md)

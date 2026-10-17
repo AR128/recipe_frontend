@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import RecipeFeed from "./pages/RecipeFeed.jsx";
+import AllRecipes from "./pages/AllRecipes.jsx";
 import RecipeDetail from "./pages/RecipeDetail.jsx";
 import Account from "./pages/Account.jsx";
 import Settings from "./pages/Settings.jsx";
@@ -13,6 +14,8 @@ import UserProfile from "./pages/UserProfile.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import { ToastProvider } from "./components/Toast.jsx";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +25,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <RecipeFeed />,
+      },
+      {
+        path: "/recipes",
+        element: <AllRecipes />,
       },
       {
         path: "/recipe/:slug",
@@ -75,7 +82,12 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <ThemeProvider>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <ErrorBoundary>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </ErrorBoundary>
     </AuthProvider>
   </ThemeProvider>
 );
+
