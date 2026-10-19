@@ -304,26 +304,10 @@ function Account() {
             </div>
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
               <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
-                {totalSavesReceived}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                Post Saves
-              </span>
-            </div>
-            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
-              <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
                 {totalLikesReceived}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Post Likes
-              </span>
-            </div>
-            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
-              <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
-                {savedTotal}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                Saved Dishes
               </span>
             </div>
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
