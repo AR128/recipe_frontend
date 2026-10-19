@@ -123,7 +123,7 @@ export default function AllRecipes() {
         search: debouncedSearch,
         category: selectedCategory,
         page: recipePage,
-        limit: 20,
+        limit: 10,
         signal: controller.signal,
       })
         .then((data) => {
@@ -209,7 +209,7 @@ export default function AllRecipes() {
         {
           query: debouncedSearch.trim(),
           hasRecipes: true,
-          limit: 20,
+          limit: 10,
           page: userPage,
           signal: controller.signal,
         },
