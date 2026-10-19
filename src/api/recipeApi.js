@@ -64,7 +64,7 @@ export const getRecipes = async ({
   search = "",
   category = "",
   page = 1,
-  limit = 10,
+  limit = 12,
   signal,
 } = {}) => {
   const params = new URLSearchParams();
@@ -81,7 +81,7 @@ export const getRecipes = async ({
     params.set("page", page);
   }
 
-  if (limit !== 10) {
+  if (limit !== 12) {
     params.set("limit", limit);
   }
 
@@ -130,7 +130,7 @@ export const getCategories = async () => {
 export const searchUsers = async (params = "", signal) => {
   let query = "";
   let hasRecipes = false;
-  let limit = 10;
+  let limit = 12;
   let page = 1;
 
   if (typeof params === "string") {
