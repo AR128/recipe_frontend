@@ -83,6 +83,7 @@ export default function AllRecipes() {
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   const searchInputRef = useRef(null);
+  const resultsRef = useRef(null);
   const debouncedSearch = useDebounce(search, 350);
 
   // Fetch real categories directly from MongoDB
@@ -449,7 +450,7 @@ export default function AllRecipes() {
         {/* RESULTS SECTION */}
         {searchTab === "users" ? (
           /* FOOD BLOGGERS TAB */
-          <div>
+          <div ref={resultsRef} className="scroll-mt-28">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-neutral-200/80 dark:border-white/10">
               <h2 className="text-2xl font-serif font-bold text-neutral-900 dark:text-white">
                 {hasSearch
@@ -495,11 +496,12 @@ export default function AllRecipes() {
               page={userPage}
               pages={userPages}
               onChange={setUserPage}
+              scrollTargetRef={resultsRef}
             />
           </div>
         ) : (
           /* RECIPES TAB */
-          <div>
+          <div ref={resultsRef} className="scroll-mt-28">
             {/* Header with Sort Menu */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-neutral-200/80 dark:border-white/10">
               <div className="flex items-center gap-3">
@@ -637,6 +639,7 @@ export default function AllRecipes() {
               page={recipePage}
               pages={recipePages}
               onChange={updateRecipePage}
+              scrollTargetRef={resultsRef}
             />
           </div>
         )}
@@ -645,14 +648,23 @@ export default function AllRecipes() {
   );
 }
 
-function PageControls({ page, pages, onChange }) {
+function PageControls({ page, pages, onChange, scrollTargetRef }) {
   if (pages <= 1) return null;
+
+  const changePage = (nextPage) => {
+    onChange(nextPage);
+    scrollTargetRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <div className="mt-8 flex items-center justify-center gap-4">
       <button
         type="button"
         disabled={page <= 1}
-        onClick={() => onChange(page - 1)}
+        onClick={() => changePage(page - 1)}
         className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
       >
         Previous
@@ -663,7 +675,7 @@ function PageControls({ page, pages, onChange }) {
       <button
         type="button"
         disabled={page >= pages}
-        onClick={() => onChange(page + 1)}
+        onClick={() => changePage(page + 1)}
         className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
       >
         Next
