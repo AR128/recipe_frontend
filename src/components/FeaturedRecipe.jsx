@@ -1,51 +1,14 @@
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import { useAuth } from "../context/useAuth";
-import { toggleRecipeLikeInDb } from "../api/recipeApi";
-import { useToast } from "./Toast";
-import { getApiErrorMessage } from "../utils/errorUtils";
+import { Link } from "react-router";
+import useRecipeLike from "../hooks/useRecipeLike";
 
 export default function FeaturedRecipe({ recipe }) {
-  const { accessToken, token } = useAuth();
-  const authToken = accessToken || token;
-  const [likeOverride, setLikeOverride] = useState(null);
-  const isLiked =
-    likeOverride?.slug === recipe?.slug
-      ? likeOverride.liked
-      : Boolean(recipe?.likedByMe);
-  const likesCount =
-    likeOverride?.slug === recipe?.slug
-      ? likeOverride.likesCount
-      : recipe?.likesCount || 0;
-  const [likeLoading, setLikeLoading] = useState(false);
-  const toast = useToast();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { isLiked, likesCount, likeLoading, toggleLike } =
+    useRecipeLike(recipe);
 
-  const handleToggleLike = async (e) => {
+  const handleToggleLike = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!recipe?.slug) return;
-    if (!authToken) {
-      navigate("/login", { state: { from: location } });
-      return;
-    }
-    if (likeLoading) return;
-
-    setLikeLoading(true);
-    try {
-      const result = await toggleRecipeLikeInDb(recipe.slug, authToken);
-      setLikeOverride({
-        slug: recipe.slug,
-        liked: result.liked,
-        likesCount: result.likesCount,
-      });
-    } catch (err) {
-      const msg = getApiErrorMessage(err, "Failed to update like.");
-      if (msg) toast(msg, "error");
-    } finally {
-      setLikeLoading(false);
-    }
+    toggleLike();
   };
 
   if (!recipe) return null;

@@ -43,11 +43,3 @@ export function getApiErrorMessage(
   return fallback;
 }
 
-export function isCancelledError(err) {
-  return (
-    err?.name === "CanceledError" ||
-    err?.code === "ERR_CANCELED" ||
-    err?.name === "AbortError"
-  );
-}
-

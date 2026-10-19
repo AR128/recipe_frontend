@@ -1,14 +1,12 @@
 import axios from "axios";
-import userApi from "./axios";
-
-const API_BASE_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+import userApi, { installAuthRefreshInterceptor } from "./axios";
+import { API_BASE_URL } from "./apiBaseUrl";
 
 // Public API — no authentication required
 export const publicApi = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  withCredentials: false,
 });
+installAuthRefreshInterceptor(publicApi);
 
 publicApi.interceptors.request.use((config) => {
   const token =
@@ -27,8 +25,8 @@ publicApi.interceptors.request.use((config) => {
 // Authenticated recipe API
 export const authRecipeApi = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  withCredentials: true,
 });
+installAuthRefreshInterceptor(authRecipeApi);
 
 // Format the Authorization header
 const getAuthHeaders = (accessToken) => {
@@ -87,7 +85,7 @@ export const getRecipes = async ({
     params.set("limit", limit);
   }
 
-  const response = await publicApi.get(`/recipes?${params.toString()}`, {
+  const response = await authRecipeApi.get(`/recipes?${params.toString()}`, {
     signal,
   });
 
@@ -103,16 +101,19 @@ export const getTrendingRecipes = async (limit = 9, signal) => {
 };
 
 // Fetch one recipe by slug
-export const getRecipe = async (slug) => {
-  const response = await publicApi.get(`/recipes/${encodeURIComponent(slug)}`);
+export const getRecipe = async (slug, signal) => {
+  const response = await authRecipeApi.get(
+    `/recipes/${encodeURIComponent(slug)}`,
+    { signal }
+  );
 
   return response.data;
 };
 
 // Fetch comments for a recipe
-export const getComments = async (slug) => {
+export const getComments = async (slug, page = 1) => {
   const response = await publicApi.get(
-    `/recipes/${encodeURIComponent(slug)}/comments`
+    `/recipes/${encodeURIComponent(slug)}/comments?page=${page}`
   );
 
   return response.data;
@@ -130,6 +131,7 @@ export const searchUsers = async (params = "", signal) => {
   let query = "";
   let hasRecipes = false;
   let limit = 20;
+  let page = 1;
 
   if (typeof params === "string") {
     query = params;
@@ -137,6 +139,7 @@ export const searchUsers = async (params = "", signal) => {
     query = params.query || params.q || "";
     hasRecipes = !!params.hasRecipes;
     if (params.limit) limit = params.limit;
+    if (params.page) page = params.page;
     if (params.signal) signal = params.signal;
   }
 
@@ -144,8 +147,9 @@ export const searchUsers = async (params = "", signal) => {
   if (query) queryParams.set("q", query);
   if (hasRecipes) queryParams.set("hasRecipes", "true");
   if (limit) queryParams.set("limit", limit);
+  if (page > 1) queryParams.set("page", page);
 
-  const response = await publicApi.get(
+  const response = await authRecipeApi.get(
     `/user/search?${queryParams.toString()}`,
     { signal }
   );
@@ -154,9 +158,9 @@ export const searchUsers = async (params = "", signal) => {
 };
 
 // Fetch a public user profile and published recipes
-export const getPublicUserProfile = async (username) => {
-  const response = await publicApi.get(
-    `/user/public/${encodeURIComponent(username)}`
+export const getPublicUserProfile = async (username, page = 1) => {
+  const response = await authRecipeApi.get(
+    `/user/public/${encodeURIComponent(username)}?page=${page}`
   );
 
   return response.data;
@@ -216,8 +220,8 @@ export const uploadImage = async (imageData, accessToken) => {
 };
 
 // Fetch posts created by the logged-in user
-export const getMyPosts = async (accessToken) => {
-  const response = await authRecipeApi.get("/user/my-posts", {
+export const getMyPosts = async (accessToken, page = 1) => {
+  const response = await authRecipeApi.get(`/user/my-posts?page=${page}`, {
     headers: getAuthHeaders(accessToken),
   });
 
@@ -225,8 +229,8 @@ export const getMyPosts = async (accessToken) => {
 };
 
 // Fetch saved recipes directly from MongoDB
-export const getSavedRecipesFromDb = async (accessToken) => {
-  const response = await authRecipeApi.get("/user/saved-recipes", {
+export const getSavedRecipesFromDb = async (accessToken, page = 1) => {
+  const response = await authRecipeApi.get(`/user/saved-recipes?page=${page}`, {
     headers: getAuthHeaders(accessToken),
   });
 

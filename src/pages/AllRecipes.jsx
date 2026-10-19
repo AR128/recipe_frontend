@@ -4,6 +4,7 @@ import RecipeCard from "../components/RecipeCard";
 import FoodieCard from "../components/FoodieCard";
 import { getRecipes, getCategories, searchUsers } from "../api/recipeApi";
 import { getApiErrorMessage } from "../utils/errorUtils";
+import { useAuth } from "../context/useAuth";
 
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -57,60 +58,32 @@ const CATEGORY_ICONS = {
 };
 
 export default function AllRecipes() {
+  const { loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [recipes, setRecipes] = useState([]);
   const [categories, setCategories] = useState(["All"]);
-  const [selectedCategory, setSelectedCategory] = useState(
-    () => searchParams.get("category") || "All"
-  );
-  const [search, setSearch] = useState(
-    () => searchParams.get("search") || searchParams.get("tag") || ""
-  );
-  const [searchTab, setSearchTab] = useState(() =>
-    searchParams.get("tab") === "users" ? "users" : "recipes"
-  );
+  const selectedCategory = searchParams.get("category") || "All";
+  const search = searchParams.get("search") || searchParams.get("tag") || "";
+  const searchTab = searchParams.get("tab") === "users" ? "users" : "recipes";
   const [matchedUsers, setMatchedUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [usersLoading, setUsersLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
+  const recipePage = Math.max(
+    1,
+    Number.parseInt(searchParams.get("page") || "1", 10) || 1
+  );
+  const [recipePages, setRecipePages] = useState(1);
+  const [userPage, setUserPage] = useState(1);
+  const [userPages, setUserPages] = useState(1);
   const [sortBy, setSortBy] = useState("Newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   const searchInputRef = useRef(null);
   const debouncedSearch = useDebounce(search, 350);
-
-  // Sync state when URL query parameters change (e.g. user clicks a tag, navigation, back/forward)
-  useEffect(() => {
-    const urlSearch =
-      searchParams.get("search") || searchParams.get("tag") || "";
-    const urlCategory = searchParams.get("category") || "All";
-    const urlTab = searchParams.get("tab") === "users" ? "users" : "recipes";
-
-    setSearch((prev) => (prev !== urlSearch ? urlSearch : prev));
-    setSelectedCategory((prev) => (prev !== urlCategory ? urlCategory : prev));
-    setSearchTab((prev) => (prev !== urlTab ? urlTab : prev));
-  }, [searchParams]);
-
-  // Sync state changes with URL query parameters for clean bookmarking & sharing
-  useEffect(() => {
-    const nextParams = new URLSearchParams();
-    if (search.trim()) nextParams.set("search", search.trim());
-    if (searchTab === "users") {
-      nextParams.set("tab", "users");
-    }
-    if (
-      selectedCategory &&
-      selectedCategory !== "All" &&
-      searchTab === "recipes"
-    ) {
-      nextParams.set("category", selectedCategory);
-    }
-    if (nextParams.toString() !== searchParams.toString()) {
-      setSearchParams(nextParams, { replace: true });
-    }
-  }, [search, selectedCategory, searchTab, searchParams, setSearchParams]);
 
   // Fetch real categories directly from MongoDB
   useEffect(() => {
@@ -135,72 +108,86 @@ export default function AllRecipes() {
 
   // Fetch all recipes from MongoDB
   const fetchRecipes = useCallback(() => {
-    if (searchTab !== "recipes") {
+    if (authLoading || searchTab !== "recipes") {
       return undefined;
     }
 
-    setLoading(true);
-    setError("");
-
     const controller = new AbortController();
 
-    getRecipes({
-      search: debouncedSearch,
-      category: selectedCategory,
-      limit: 60,
-      signal: controller.signal,
-    })
-      .then((data) => {
-        if (controller.signal.aborted) return;
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return;
+      setLoading(true);
+      setError("");
 
-        const fetchedRecipes = [...(data.recipes || [])];
-
-        if (sortBy === "Newest") {
-          fetchedRecipes.sort(
-            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-          );
-        } else if (sortBy === "Most Popular") {
-          fetchedRecipes.sort(
-            (a, b) => (b.likesCount || 0) - (a.likesCount || 0)
-          );
-        } else if (sortBy === "Quickest") {
-          fetchedRecipes.sort((a, b) => {
-            const timeA =
-              (parseInt(a.prepTime) || 0) + (parseInt(a.cookTime) || 0) || 999;
-            const timeB =
-              (parseInt(b.prepTime) || 0) + (parseInt(b.cookTime) || 0) || 999;
-            return timeA - timeB;
-          });
-        }
-
-        setRecipes(fetchedRecipes);
-        setTotal(data.total || fetchedRecipes.length);
+      getRecipes({
+        search: debouncedSearch,
+        category: selectedCategory,
+        page: recipePage,
+        limit: 20,
+        signal: controller.signal,
       })
-      .catch((requestError) => {
-        const requestWasCancelled =
-          controller.signal.aborted ||
-          requestError.name === "CanceledError" ||
-          requestError.code === "ERR_CANCELED";
+        .then((data) => {
+          if (controller.signal.aborted) return;
 
-        if (!requestWasCancelled) {
-          setError(
-            getApiErrorMessage(
-              requestError,
-              "Failed to load recipes from server. Please check your connection."
-            )
-          );
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
+          const fetchedRecipes = [...(data.recipes || [])];
+
+          if (sortBy === "Newest") {
+            fetchedRecipes.sort(
+              (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+            );
+          } else if (sortBy === "Most Popular") {
+            fetchedRecipes.sort(
+              (a, b) => (b.likesCount || 0) - (a.likesCount || 0)
+            );
+          } else if (sortBy === "Quickest") {
+            fetchedRecipes.sort((a, b) => {
+              const timeA =
+                (parseInt(a.prepTime) || 0) + (parseInt(a.cookTime) || 0) ||
+                999;
+              const timeB =
+                (parseInt(b.prepTime) || 0) + (parseInt(b.cookTime) || 0) ||
+                999;
+              return timeA - timeB;
+            });
+          }
+
+          setRecipes(fetchedRecipes);
+          setTotal(data.total || fetchedRecipes.length);
+          setRecipePages(data.pages || 1);
+        })
+        .catch((requestError) => {
+          const requestWasCancelled =
+            controller.signal.aborted ||
+            requestError.name === "CanceledError" ||
+            requestError.code === "ERR_CANCELED";
+
+          if (!requestWasCancelled) {
+            setError(
+              getApiErrorMessage(
+                requestError,
+                "Failed to load recipes from server. Please check your connection."
+              )
+            );
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+          }
+        });
+    });
 
     return () => {
       controller.abort();
     };
-  }, [debouncedSearch, selectedCategory, sortBy, searchTab]);
+  }, [
+    authLoading,
+    debouncedSearch,
+    selectedCategory,
+    sortBy,
+    searchTab,
+    recipePage,
+  ]);
 
   useEffect(() => {
     return fetchRecipes();
@@ -213,49 +200,102 @@ export default function AllRecipes() {
     }
 
     let isMounted = true;
-    setUsersLoading(true);
     const controller = new AbortController();
 
-    searchUsers(
-      {
-        query: debouncedSearch.trim(),
-        limit: 50,
-        signal: controller.signal,
-      },
-      controller.signal
-    )
-      .then((data) => {
-        if (isMounted) {
-          setMatchedUsers(data.users || []);
-        }
-      })
-      .catch((err) => {
-        const wasAborted =
-          controller.signal.aborted ||
-          err?.name === "CanceledError" ||
-          err?.code === "ERR_CANCELED";
-        if (isMounted && !wasAborted) {
-          setMatchedUsers([]);
-        }
-      })
-      .finally(() => {
-        if (isMounted && !controller.signal.aborted) {
-          setUsersLoading(false);
-        }
-      });
+    queueMicrotask(() => {
+      if (!isMounted) return;
+      setUsersLoading(true);
+      searchUsers(
+        {
+          query: debouncedSearch.trim(),
+          hasRecipes: true,
+          limit: 20,
+          page: userPage,
+          signal: controller.signal,
+        },
+        controller.signal
+      )
+        .then((data) => {
+          if (isMounted) {
+            setMatchedUsers(data.users || []);
+            setTotalUsers(data.total || 0);
+            setUserPages(data.pages || 1);
+          }
+        })
+        .catch((err) => {
+          const wasAborted =
+            controller.signal.aborted ||
+            err?.name === "CanceledError" ||
+            err?.code === "ERR_CANCELED";
+          if (isMounted && !wasAborted) {
+            setMatchedUsers([]);
+          }
+        })
+        .finally(() => {
+          if (isMounted && !controller.signal.aborted) {
+            setUsersLoading(false);
+          }
+        });
+    });
 
     return () => {
       isMounted = false;
       controller.abort();
     };
-  }, [debouncedSearch, searchTab]);
+  }, [debouncedSearch, searchTab, userPage]);
 
   const hasSearch = search.trim().length > 0;
   const hasActiveFilters = hasSearch || selectedCategory !== "All";
 
+  const updateSearchTab = (tab) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (tab === "users") {
+      nextParams.set("tab", "users");
+      nextParams.delete("category");
+    } else {
+      nextParams.delete("tab");
+    }
+    nextParams.delete("page");
+    setSearchParams(nextParams, { replace: true });
+    setUserPage(1);
+  };
+
+  const updateSearch = (value) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("tag");
+    if (value.trim()) nextParams.set("search", value);
+    else nextParams.delete("search");
+    nextParams.delete("page");
+    setSearchParams(nextParams, { replace: true });
+    setUserPage(1);
+  };
+
+  const updateCategory = (category) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (category && category !== "All") {
+      nextParams.set("category", category);
+    } else {
+      nextParams.delete("category");
+    }
+    nextParams.delete("page");
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const updateRecipePage = (page) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (page > 1) nextParams.set("page", String(page));
+    else nextParams.delete("page");
+    setSearchParams(nextParams);
+  };
+
   const clearFilters = () => {
-    setSearch("");
-    setSelectedCategory("All");
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("search");
+    nextParams.delete("tag");
+    nextParams.delete("category");
+    nextParams.delete("page");
+    setSearchParams(nextParams, { replace: true });
+    setUserPage(1);
   };
 
   return (
@@ -290,7 +330,7 @@ export default function AllRecipes() {
           <div className="flex items-center gap-6 mb-6 border-b border-neutral-200/80 dark:border-white/10 pb-4">
             <button
               type="button"
-              onClick={() => setSearchTab("recipes")}
+              onClick={() => updateSearchTab("recipes")}
               className={`text-xs font-bold uppercase tracking-widest pb-1 relative transition-colors ${
                 searchTab === "recipes"
                   ? "text-[#C9A96E]"
@@ -307,7 +347,7 @@ export default function AllRecipes() {
 
             <button
               type="button"
-              onClick={() => setSearchTab("users")}
+              onClick={() => updateSearchTab("users")}
               className={`text-xs font-bold uppercase tracking-widest pb-1 relative transition-colors ${
                 searchTab === "users"
                   ? "text-[#C9A96E]"
@@ -347,13 +387,13 @@ export default function AllRecipes() {
                   : "Search bloggers by name or username (e.g. Pegasus, Chef)..."
               }
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => updateSearch(e.target.value)}
               className="w-full bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl pl-12 pr-12 py-3.5 outline-none text-base text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-[#C9A96E] dark:focus:border-[#C9A96E] transition-all"
             />
             {search && (
               <button
                 type="button"
-                onClick={() => setSearch("")}
+                onClick={() => updateSearch("")}
                 className="absolute right-4 text-neutral-400 hover:text-neutral-900 dark:hover:text-white p-1 text-sm rounded-full transition-colors"
                 aria-label="Clear search"
               >
@@ -389,7 +429,7 @@ export default function AllRecipes() {
                     <button
                       key={cat}
                       type="button"
-                      onClick={() => setSelectedCategory(cat)}
+                      onClick={() => updateCategory(cat)}
                       className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
                         isActive
                           ? "bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#121210] border-transparent shadow-md shadow-[#C9A96E]/20 font-extrabold"
@@ -418,7 +458,7 @@ export default function AllRecipes() {
               </h2>
               {matchedUsers.length > 0 && (
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#C9A96E]/15 text-[#C9A96E]">
-                  {matchedUsers.length} found
+                  {totalUsers} found
                 </span>
               )}
             </div>
@@ -444,10 +484,18 @@ export default function AllRecipes() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {matchedUsers.map((user) => (
-                  <FoodieCard key={user._id} user={user} />
+                  <FoodieCard
+                    key={user.id || user._id || user.username}
+                    user={user}
+                  />
                 ))}
               </div>
             )}
+            <PageControls
+              page={userPage}
+              pages={userPages}
+              onChange={setUserPage}
+            />
           </div>
         ) : (
           /* RECIPES TAB */
@@ -585,9 +633,41 @@ export default function AllRecipes() {
                 ))}
               </div>
             )}
+            <PageControls
+              page={recipePage}
+              pages={recipePages}
+              onChange={updateRecipePage}
+            />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function PageControls({ page, pages, onChange }) {
+  if (pages <= 1) return null;
+  return (
+    <div className="mt-8 flex items-center justify-center gap-4">
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => onChange(page - 1)}
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+      >
+        Previous
+      </button>
+      <span className="text-xs text-neutral-500 dark:text-neutral-400">
+        Page {page} of {pages}
+      </span>
+      <button
+        type="button"
+        disabled={page >= pages}
+        onClick={() => onChange(page + 1)}
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+      >
+        Next
+      </button>
     </div>
   );
 }

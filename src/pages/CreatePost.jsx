@@ -50,12 +50,12 @@ function CreatePost() {
     try {
       parsedUrl = new URL(imageUrl.trim());
     } catch {
-      setError("Enter a valid image URL beginning with http:// or https://.");
+      setError("Enter a valid image URL beginning with https://.");
       return;
     }
 
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      setError("Enter a valid image URL beginning with http:// or https://.");
+    if (parsedUrl.protocol !== "https:") {
+      setError("Enter a valid image URL beginning with https://.");
       return;
     }
 
@@ -80,7 +80,7 @@ function CreatePost() {
       return;
     }
 
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    if (parsedUrl.protocol !== "https:") {
       setImage(imageData);
       return;
     }

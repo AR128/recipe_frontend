@@ -1,95 +1,105 @@
-import { useState, useEffect } from 'react';
-import api, { setAuthToken } from '../api/axios';
-import { AuthContext } from './AuthContext.js';
-
-// This file exports ONLY the AuthProvider component — required for Vite Fast Refresh
+import { useState, useEffect } from "react";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+import api, { setAuthToken } from "../api/axios";
+import { auth } from "../firebase";
+import { AuthContext } from "./AuthContext.js";
 
 export const AuthProvider = ({ children }) => {
-    const [accessToken, setAccessTokenState] = useState(null);
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [accessToken, setAccessToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let currentOperation = 0;
 
-    const setAccessToken = (token) => {
-        setAccessTokenState(token);
-        setAuthToken(token);
-    };
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      const operation = ++currentOperation;
 
-    // On mount: try to restore session using the httpOnly refresh cookie
-    useEffect(() => {
-        const restoreSession = async () => {
-            try {
-                const response = await api.post('/refresh');
-                setAccessToken(response.data.accessToken);
-                if (response.data.user) {
-                    setUser(response.data.user);
-                }
-            } catch {
-                setAccessToken(null);
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        };
-        restoreSession();
-    }, []);
+      if (!firebaseUser) {
+        setAuthToken(null);
+        setAccessToken(null);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
-    const signup = async (username, email, password) => {
-        const response = await api.post('/signup', { username, email, password });
-        setAccessToken(response.data.accessToken);
-        setUser(response.data.user);
-    };
+      try {
+        const idToken = await firebaseUser.getIdToken();
+        if (operation !== currentOperation) return;
 
-    const login = async (email, password) => {
-        const response = await api.post('/login', { email, password });
-        setAccessToken(response.data.accessToken);
-        setUser(response.data.user);
-    };
+        setAuthToken(idToken);
+        setAccessToken(idToken);
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || "",
+          fullName: firebaseUser.displayName || "",
+          username: "",
+        });
 
-    const logout = async () => {
-        try {
-            await api.post('/logout');
-        } catch (error) {
-            console.error('Logout error', error);
-        } finally {
-            setAccessToken(null);
-            setUser(null);
+        const response = await api.get("/profile");
+        if (operation === currentOperation) {
+          setUser({ ...response.data.user, uid: firebaseUser.uid });
         }
+      } catch (error) {
+        if (operation === currentOperation) {
+          console.error("Unable to synchronize the Firebase profile:", error);
+        }
+      } finally {
+        if (operation === currentOperation) setLoading(false);
+      }
+    });
+
+    return () => {
+      currentOperation += 1;
+      unsubscribe();
+      setAuthToken(null);
     };
+  }, []);
 
-    const updateProfile = async (name) => {
-        const response = await api.put('/profile', { name });
-        setUser(response.data.user);
-        return response.data.user;
-    };
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const { user: firebaseUser } = await signInWithPopup(auth, provider);
+    const idToken = await firebaseUser.getIdToken();
+    setAuthToken(idToken);
+    setAccessToken(idToken);
+    const response = await api.get("/profile");
+    setUser({ ...response.data.user, uid: firebaseUser.uid });
+  };
 
-    if (loading) {
-        return (
-            <div
-                style={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'var(--color-bg)',
-                }}
-            >
-                <div
-                    style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        border: '3px solid var(--color-border)',
-                        borderTopColor: 'var(--color-accent)',
-                    }}
-                    className="animate-spin"
-                />
-            </div>
-        );
-    }
+  const logout = async () => {
+    await signOut(auth);
+  };
 
-    return (
-        <AuthContext.Provider value={{ accessToken, token: accessToken, user, setUser, signup, login, logout, updateProfile, isAuthenticated: !!accessToken }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const updateProfile = async (username, fullName) => {
+    const response = await api.put("/profile", { username, fullName });
+    setUser((currentUser) => ({
+      ...currentUser,
+      ...response.data.user,
+    }));
+    return response.data.user;
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        token: accessToken,
+        user,
+        setUser,
+        loginWithGoogle,
+        logout,
+        updateProfile,
+        isAuthenticated: Boolean(accessToken),
+        loading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

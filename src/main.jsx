@@ -1,9 +1,8 @@
 import { createRoot } from "react-dom/client";
-import { RouterProvider, createBrowserRouter } from "react-router";
+import { Navigate, RouterProvider, createBrowserRouter } from "react-router";
 import "./index.css";
 import App from "./App.jsx";
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
+import GetStarted from "./pages/GetStarted.jsx";
 import RecipeFeed from "./pages/RecipeFeed.jsx";
 import AllRecipes from "./pages/AllRecipes.jsx";
 import RecipeDetail from "./pages/RecipeDetail.jsx";
@@ -27,10 +26,6 @@ const router = createBrowserRouter([
         element: <RecipeFeed />,
       },
       {
-        path: "/recipes",
-        element: <AllRecipes />,
-      },
-      {
         path: "/recipe/:slug",
         element: <RecipeDetail />,
       },
@@ -39,20 +34,28 @@ const router = createBrowserRouter([
         element: <RecipeDetail />,
       },
       {
+        path: "/get-started",
+        element: <GetStarted />,
+      },
+      {
+        path: "/login",
+        element: <Navigate to="/get-started" replace />,
+      },
+      {
+        path: "/signup",
+        element: <Navigate to="/get-started" replace />,
+      },
+      {
+        path: "/recipes",
+        element: <AllRecipes />,
+      },
+      {
         path: "/user/:username",
         element: <UserProfile />,
       },
       {
         path: "/profile/:username",
         element: <UserProfile />,
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/signup",
-        element: <Signup />,
       },
       {
         element: <ProtectedRoute />,
@@ -90,4 +93,3 @@ createRoot(document.getElementById("root")).render(
     </AuthProvider>
   </ThemeProvider>
 );
-

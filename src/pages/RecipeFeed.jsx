@@ -4,14 +4,12 @@ import Hero from "../components/Hero";
 import FeaturedRecipe from "../components/FeaturedRecipe";
 import RecipeCard from "../components/RecipeCard";
 import FoodieCard from "../components/FoodieCard";
-import {
-  getTrendingRecipes,
-  getCategories,
-  searchUsers,
-} from "../api/recipeApi";
+import { getTrendingRecipes, searchUsers } from "../api/recipeApi";
 import { getApiErrorMessage } from "../utils/errorUtils";
+import { useAuth } from "../context/useAuth";
 
 export default function RecipeFeed() {
+  const { loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -27,71 +25,56 @@ export default function RecipeFeed() {
   }, [searchParams, navigate]);
 
   const [trendingRecipes, setTrendingRecipes] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [featuredChefs, setFeaturedChefs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Fetch top 5 trending recipes (top 1 for trending, next 4 for community shared)
   const fetchTrending = useCallback(() => {
-    setLoading(true);
-    setError("");
+    if (authLoading) return undefined;
 
     const controller = new AbortController();
 
-    getTrendingRecipes(5, controller.signal)
-      .then((data) => {
-        if (controller.signal.aborted) return;
-        setTrendingRecipes(data.recipes || []);
-      })
-      .catch((err) => {
-        const wasCancelled =
-          controller.signal.aborted ||
-          err?.name === "CanceledError" ||
-          err?.code === "ERR_CANCELED";
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return;
+      setLoading(true);
+      setError("");
 
-        if (!wasCancelled) {
-          setError(
-            getApiErrorMessage(
-              err,
-              "Failed to load trending recipes. Please check your connection."
-            )
-          );
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
+      getTrendingRecipes(5, controller.signal)
+        .then((data) => {
+          if (controller.signal.aborted) return;
+          setTrendingRecipes(data.recipes || []);
+        })
+        .catch((err) => {
+          const wasCancelled =
+            controller.signal.aborted ||
+            err?.name === "CanceledError" ||
+            err?.code === "ERR_CANCELED";
+
+          if (!wasCancelled) {
+            setError(
+              getApiErrorMessage(
+                err,
+                "Failed to load trending recipes. Please check your connection."
+              )
+            );
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+          }
+        });
+    });
 
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [authLoading]);
 
   useEffect(() => {
     return fetchTrending();
   }, [fetchTrending]);
-
-  // Fetch real categories from MongoDB for quick exploration
-  useEffect(() => {
-    let isMounted = true;
-    getCategories()
-      .then((data) => {
-        if (isMounted) {
-          const list = (data.categories || []).filter(Boolean);
-          setCategories(list);
-        }
-      })
-      .catch(() => {
-        if (isMounted) setCategories([]);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Fetch real food bloggers from MongoDB who have shared cooking recipes (top 4 only)
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../context/useAuth";
 import { useTheme } from "../context/useTheme";
@@ -10,12 +10,39 @@ import bannerImg from "../assets/profile-banner.jpg";
 
 function getInitials(user) {
   if (!user) return "?";
-  const name = user.name || user.username || "";
+  const name = user.fullName || user.name || user.username || "";
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
   return name.slice(0, 2).toUpperCase() || "?";
+}
+
+function PageControls({ page, pages, onChange }) {
+  if (pages <= 1) return null;
+  return (
+    <div className="mt-8 flex items-center justify-center gap-4">
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => onChange(page - 1)}
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+      >
+        Previous
+      </button>
+      <span className="text-xs text-neutral-500 dark:text-neutral-400">
+        Page {page} of {pages}
+      </span>
+      <button
+        type="button"
+        disabled={page >= pages}
+        onClick={() => onChange(page + 1)}
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+      >
+        Next
+      </button>
+    </div>
+  );
 }
 
 function Account() {
@@ -28,7 +55,9 @@ function Account() {
   const [activeTab, setActiveTab] = useState("my-posts"); // 'my-posts' | 'saved-recipes' | 'commented-posts' | 'settings'
 
   // Profile Edit State
-  const [name, setName] = useState(user?.name || "");
+  const [profileDraft, setProfileDraft] = useState(null);
+  const username = profileDraft?.username ?? user?.username ?? "";
+  const fullName = profileDraft?.fullName ?? user?.fullName ?? user?.name ?? "";
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -38,30 +67,32 @@ function Account() {
   const [myPostsLoading, setMyPostsLoading] = useState(true);
   const [myPostsError, setMyPostsError] = useState("");
   const [totalSavesReceived, setTotalSavesReceived] = useState(0);
-  const [uniqueUsersCount, setUniqueUsersCount] = useState(0);
+  const [totalLikesReceived, setTotalLikesReceived] = useState(0);
+  const [myPostsPage, setMyPostsPage] = useState(1);
+  const [myPostsPages, setMyPostsPages] = useState(1);
+  const [myPostsTotal, setMyPostsTotal] = useState(0);
 
   // Saved/Bookmarked Recipes
   const [savedPosts, setSavedPosts] = useState([]);
   const [savedLoading, setSavedLoading] = useState(true);
   const [savedError, setSavedError] = useState("");
+  const [savedPage, setSavedPage] = useState(1);
+  const [savedPages, setSavedPages] = useState(1);
+  const [savedTotal, setSavedTotal] = useState(0);
 
   // Commented Recipes
   const [commentedPosts, setCommentedPosts] = useState([]);
   const [commentedLoading, setCommentedLoading] = useState(true);
   const [commentedError, setCommentedError] = useState("");
+  const [commentedPage, setCommentedPage] = useState(1);
+  const [commentedPages, setCommentedPages] = useState(1);
+  const [commentedTotal, setCommentedTotal] = useState(0);
 
   // Modals
   const [editingPost, setEditingPost] = useState(null);
   const [deletingPost, setDeletingPost] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionFeedback, setActionFeedback] = useState("");
-
-  // Sync user's name when auth user updates
-  useEffect(() => {
-    if (user?.name !== undefined) {
-      setName(user.name || "");
-    }
-  }, [user]);
 
   // Lock body scroll during delete modal
   useEffect(() => {
@@ -76,60 +107,85 @@ function Account() {
   }, [deletingPost]);
 
   // 1. Fetch user's own published posts and save metrics
-  const fetchMyPosts = () => {
+  const fetchMyPosts = useCallback((page = 1) => {
     setMyPostsLoading(true);
+    setMyPostsError("");
     api
-      .get("/my-posts")
+      .get(`/my-posts?page=${page}`)
       .then((res) => {
         setMyPosts(res.data.recipes || []);
         setTotalSavesReceived(res.data.totalSavesReceived || 0);
-        setUniqueUsersCount(res.data.uniqueUsersCount || 0);
+        setTotalLikesReceived(res.data.totalLikesReceived || 0);
+        setMyPostsTotal(res.data.total || 0);
+        setMyPostsPages(res.data.pages || 1);
       })
       .catch(() => setMyPostsError("Failed to load your published posts."))
       .finally(() => setMyPostsLoading(false));
-  };
+  }, []);
 
   // 2. Fetch saved/bookmarked recipes directly from MongoDB
-  const fetchSavedPosts = async () => {
-    setSavedLoading(true);
-    setSavedError("");
-    if (authToken) {
-      try {
-        const res = await getSavedRecipesFromDb(authToken);
-        setSavedPosts(res.recipes || []);
-      } catch (err) {
-        console.error("Failed to load saved recipes from MongoDB:", err);
+  const fetchSavedPosts = useCallback(
+    async (page = 1) => {
+      setSavedLoading(true);
+      setSavedError("");
+      if (authToken) {
+        try {
+          const res = await getSavedRecipesFromDb(authToken, page);
+          setSavedPosts(res.recipes || []);
+          setSavedTotal(res.total || 0);
+          setSavedPages(res.pages || 1);
+        } catch (err) {
+          console.error("Failed to load saved recipes from MongoDB:", err);
+          setSavedPosts([]);
+          setSavedError("Unable to load saved recipes right now.");
+        }
+      } else {
         setSavedPosts([]);
-        setSavedError("Unable to load saved recipes right now.");
       }
-    } else {
-      setSavedPosts([]);
-    }
-    setSavedLoading(false);
-  };
+      setSavedLoading(false);
+    },
+    [authToken]
+  );
 
   // 3. Fetch recipes where user has commented
-  const fetchCommentedPosts = () => {
+  const fetchCommentedPosts = useCallback((page = 1) => {
     setCommentedLoading(true);
+    setCommentedError("");
     api
-      .get("/commented-posts")
-      .then((res) => setCommentedPosts(res.data.recipes || []))
+      .get(`/commented-posts?page=${page}`)
+      .then((res) => {
+        setCommentedPosts(res.data.recipes || []);
+        setCommentedTotal(res.data.total || 0);
+        setCommentedPages(res.data.pages || 1);
+      })
       .catch(() => setCommentedError("Failed to load commented posts."))
       .finally(() => setCommentedLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
-    fetchMyPosts();
-    fetchSavedPosts();
-    fetchCommentedPosts();
-  }, [authToken]);
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      fetchMyPosts();
+      void fetchSavedPosts();
+      fetchCommentedPosts();
+    });
+    return () => {
+      active = false;
+    };
+  }, [fetchCommentedPosts, fetchMyPosts, fetchSavedPosts]);
 
   // Re-check saved posts whenever switching to the saved tab
   useEffect(() => {
-    if (activeTab === "saved-recipes") {
-      fetchSavedPosts();
-    }
-  }, [activeTab]);
+    if (activeTab !== "saved-recipes") return undefined;
+    let active = true;
+    queueMicrotask(() => {
+      if (active) void fetchSavedPosts(savedPage);
+    });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, fetchSavedPosts, savedPage]);
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -138,12 +194,20 @@ function Account() {
     setSaveSuccess(false);
 
     try {
-      await updateProfile(name);
+      const updatedUser = await updateProfile(username, fullName);
+      setProfileDraft({
+        username: updatedUser.username || "",
+        fullName: updatedUser.fullName || updatedUser.name || "",
+      });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error(err);
-      setSaveError(err.response?.data?.message || "Failed to update profile.");
+      setSaveError(
+        err.response?.data?.code === "USERNAME_TAKEN"
+          ? "That username is already registered. Please choose another."
+          : err.response?.data?.message || "Failed to update profile."
+      );
     } finally {
       setSaving(false);
     }
@@ -155,6 +219,7 @@ function Account() {
     try {
       await deleteRecipePost(deletingPost._id, authToken);
       setMyPosts((prev) => prev.filter((p) => p._id !== deletingPost._id));
+      setMyPostsTotal((total) => Math.max(0, total - 1));
       setActionFeedback(`✓ Post "${deletingPost.title}" deleted successfully.`);
       setTimeout(() => setActionFeedback(""), 4000);
       setDeletingPost(null);
@@ -212,7 +277,7 @@ function Account() {
             <div>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-2.5">
                 <h1 className="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
-                  {user?.name || user?.username || "Community Chef"}
+                  {user?.fullName || user?.name || "Community Chef"}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#C9A96E]/20 text-[#C9A96E] text-[10px] font-bold uppercase tracking-wider">
                   Food Blogger
@@ -228,10 +293,10 @@ function Account() {
           </div>
 
           {/* Quick Stats Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-3 sm:gap-4 border-t md:border-t-0 md:border-l border-neutral-200/80 dark:border-white/10 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-5 md:flex items-center gap-3 sm:gap-4 border-t md:border-t-0 md:border-l border-neutral-200/80 dark:border-white/10 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
               <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
-                {myPosts.length}
+                {myPostsTotal}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 My Recipes
@@ -247,7 +312,15 @@ function Account() {
             </div>
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
               <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
-                {savedPosts.length}
+                {totalLikesReceived}
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                Post Likes
+              </span>
+            </div>
+            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
+              <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
+                {savedTotal}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Saved Dishes
@@ -255,7 +328,7 @@ function Account() {
             </div>
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
               <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
-                {commentedPosts.length}
+                {commentedTotal}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Discussions
@@ -281,7 +354,7 @@ function Account() {
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "my-posts" ? "bg-black/15 text-black" : "bg-neutral-200 dark:bg-white/10"}`}
               >
-                {myPosts.length}
+                {myPostsTotal}
               </span>
             </button>
 
@@ -299,7 +372,7 @@ function Account() {
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "saved-recipes" ? "bg-black/15 text-black" : "bg-neutral-200 dark:bg-white/10"}`}
               >
-                {savedPosts.length}
+                {savedTotal}
               </span>
             </button>
 
@@ -317,7 +390,7 @@ function Account() {
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "commented-posts" ? "bg-black/15 text-black" : "bg-neutral-200 dark:bg-white/10"}`}
               >
-                {commentedPosts.length}
+                {commentedTotal}
               </span>
             </button>
 
@@ -382,7 +455,7 @@ function Account() {
                       : "bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300"
                   }`}
                 >
-                  {myPosts.length}
+                  {myPostsTotal}
                 </span>
               </button>
 
@@ -407,7 +480,7 @@ function Account() {
                       : "bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300"
                   }`}
                 >
-                  {savedPosts.length}
+                  {savedTotal}
                 </span>
               </button>
 
@@ -432,7 +505,7 @@ function Account() {
                       : "bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300"
                   }`}
                 >
-                  {commentedPosts.length}
+                  {commentedTotal}
                 </span>
               </button>
 
@@ -515,7 +588,7 @@ function Account() {
                   <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
                     {myPostsError}
                   </div>
-                ) : myPosts.length === 0 ? (
+                ) : myPostsTotal === 0 ? (
                   <div className="text-center py-20 px-6 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
                     <span className="text-5xl block mb-4">🍳</span>
                     <h4 className="font-serif text-xl font-bold text-neutral-900 dark:text-white mb-2">
@@ -546,6 +619,14 @@ function Account() {
                     ))}
                   </div>
                 )}
+                <PageControls
+                  page={myPostsPage}
+                  pages={myPostsPages}
+                  onChange={(page) => {
+                    setMyPostsPage(page);
+                    fetchMyPosts(page);
+                  }}
+                />
               </div>
             )}
 
@@ -559,12 +640,11 @@ function Account() {
                         Saved Recipes
                       </h3>
                       <span className="px-2.5 py-0.5 rounded-full bg-[#C9A96E]/20 text-[#C9A96E] text-xs font-bold">
-                        {savedPosts.length}
+                        {savedTotal}
                       </span>
                     </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                      Recipes from community bloggers you liked and bookmarked
-                      for cooking.
+                      Recipes you’ve liked or bookmarked, all in one place.
                     </p>
                   </div>
                   <Link
@@ -583,16 +663,15 @@ function Account() {
                   <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
                     {savedError}
                   </div>
-                ) : savedPosts.length === 0 ? (
+                ) : savedTotal === 0 ? (
                   <div className="text-center py-20 px-6 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
                     <span className="text-5xl block mb-4">💖</span>
                     <h4 className="font-serif text-xl font-bold text-neutral-900 dark:text-white mb-2">
                       No saved recipes yet
                     </h4>
                     <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 font-light">
-                      When browsing community recipes on the feed, tap the heart
-                      button on any recipe card to save it here for quick access
-                      anytime!
+                      Like a recipe or bookmark it to keep it here for your next
+                      cooking session.
                     </p>
                     <Link
                       to="/"
@@ -608,6 +687,13 @@ function Account() {
                     ))}
                   </div>
                 )}
+                <PageControls
+                  page={savedPage}
+                  pages={savedPages}
+                  onChange={(page) => {
+                    setSavedPage(page);
+                  }}
+                />
               </div>
             )}
 
@@ -631,7 +717,7 @@ function Account() {
                   <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
                     {commentedError}
                   </div>
-                ) : commentedPosts.length === 0 ? (
+                ) : commentedTotal === 0 ? (
                   <div className="text-center py-20 px-6 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
                     <span className="text-5xl block mb-4">💬</span>
                     <h4 className="font-serif text-xl font-bold text-neutral-900 dark:text-white mb-2">
@@ -655,6 +741,14 @@ function Account() {
                     ))}
                   </div>
                 )}
+                <PageControls
+                  page={commentedPage}
+                  pages={commentedPages}
+                  onChange={(page) => {
+                    setCommentedPage(page);
+                    fetchCommentedPosts(page);
+                  }}
+                />
               </div>
             )}
 
@@ -683,30 +777,63 @@ function Account() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
-                        Public Display Name
-                      </label>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      autoComplete="name"
+                      required
+                      maxLength={80}
+                      value={fullName}
+                      onChange={(e) =>
+                        setProfileDraft((current) => ({
+                          username: current?.username ?? user?.username ?? "",
+                          fullName: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 outline-none focus:border-[#C9A96E] dark:border-white/10 dark:bg-white/5 dark:text-white"
+                    />
+                    <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                      Your full name is shown publicly and can be the same as
+                      another community member&apos;s.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+                      Username
+                    </label>
+                    <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 dark:border-white/10 dark:bg-white/5 focus-within:border-[#C9A96E]">
+                      <span className="text-sm text-neutral-400">@</span>
                       <input
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Chef Maya"
-                        className="w-full bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-neutral-900 dark:text-white outline-none focus:border-[#C9A96E] transition-colors"
+                        autoComplete="username"
+                        required
+                        minLength={2}
+                        maxLength={24}
+                        pattern="[A-Za-z0-9_]+"
+                        title="Use 2–24 letters, numbers, or underscores."
+                        value={username}
+                        onChange={(e) =>
+                          setProfileDraft((current) => ({
+                            username: e.target.value,
+                            fullName:
+                              current?.fullName ??
+                              user?.fullName ??
+                              user?.name ??
+                              "",
+                          }))
+                        }
+                        className="w-full bg-transparent px-2 py-2.5 text-sm text-neutral-900 outline-none dark:text-white"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                        Username (Handle)
-                      </label>
-                      <input
-                        type="text"
-                        readOnly
-                        value={`@${user?.username || ""}`}
-                        className="w-full bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-sm text-neutral-400 cursor-not-allowed"
-                      />
-                    </div>
+                    <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                      Your unique profile handle. Use 2–24 letters, numbers, or
+                      underscores with no spaces; usernames are unique
+                      regardless of capitalization.
+                    </p>
                   </div>
 
                   <div>
@@ -891,10 +1018,19 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
               {post.category}
             </span>
           )}
-          {post.savedCount !== undefined && (
-            <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-              ❤️ {post.savedCount}
-            </span>
+          {(post.savedCount !== undefined || post.likesCount !== undefined) && (
+            <div className="absolute top-3 right-3 flex items-center gap-1.5">
+              {post.likesCount !== undefined && (
+                <span className="bg-black/70 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                  ❤️ {post.likesCount}
+                </span>
+              )}
+              {post.savedCount !== undefined && (
+                <span className="bg-black/70 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                  🔖 {post.savedCount}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
@@ -909,9 +1045,9 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
             <span className="truncate max-w-[110px]">
               By {post.authorName || "Chef"}
             </span>
-            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold lowercase">
-              ❤️ {post.savedCount || 0}{" "}
-              {post.savedCount === 1 ? "save" : "saves"}
+            <span className="inline-flex flex-wrap items-center gap-x-2 text-amber-600 dark:text-amber-400 font-bold lowercase">
+              <span>❤️ {post.likesCount || 0} likes</span>
+              <span>🔖 {post.savedCount || 0} saves</span>
             </span>
             <span>
               {post.createdAt

@@ -1,86 +1,53 @@
-import axios from 'axios';
+import axios from "axios";
+import { auth } from "../firebase";
+import { API_BASE_URL } from "./apiBaseUrl";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const authenticatedClients = new Set();
 
-// Authenticated user API — points to user endpoints
 const api = axios.create({
-    baseURL: `${API_BASE_URL}/api/user`,
-    withCredentials: true, // Sends the httpOnly refresh token cookie automatically
+  baseURL: `${API_BASE_URL}/api/user`,
 });
 
 export const setAuthToken = (token) => {
+  authenticatedClients.forEach((client) => {
     if (token) {
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      client.defaults.headers.common.Authorization = `Bearer ${token}`;
     } else {
-        delete api.defaults.headers.common['Authorization'];
+      delete client.defaults.headers.common.Authorization;
     }
+  });
 };
 
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-    failedQueue.forEach((prom) => {
-        if (error) {
-            prom.reject(error);
-        } else {
-            prom.resolve(token);
-        }
-    });
-    failedQueue = [];
-};
-
-// Response interceptor — automatically refresh the access token on 401
-api.interceptors.response.use(
+export const installAuthRefreshInterceptor = (client) => {
+  authenticatedClients.add(client);
+  client.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
-        const url = originalRequest?.url || '';
-        const isAuthEndpoint =
-            url === '/login' ||
-            url === '/signup' ||
-            url === '/refresh' ||
-            url === '/logout';
+      const originalRequest = error.config;
+      const currentUser = auth.currentUser;
 
-        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
-            if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                })
-                    .then((token) => {
-                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
-                        return api(originalRequest);
-                    })
-                    .catch((err) => {
-                        return Promise.reject(err);
-                    });
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            try {
-                const response = await axios.post(
-                    `${API_BASE_URL}/api/user/refresh`,
-                    {},
-                    { withCredentials: true }
-                );
-                const newAccessToken = response.data.accessToken;
-                setAuthToken(newAccessToken);
-                originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-                processQueue(null, newAccessToken);
-                return api(originalRequest);
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                setAuthToken(null);
-                return Promise.reject(refreshError);
-            } finally {
-                isRefreshing = false;
-            }
-        }
-
+      if (
+        error.response?.status !== 401 ||
+        !originalRequest ||
+        originalRequest._firebaseRetry ||
+        !currentUser
+      ) {
         return Promise.reject(error);
+      }
+
+      originalRequest._firebaseRetry = true;
+      try {
+        const refreshedToken = await currentUser.getIdToken(true);
+        setAuthToken(refreshedToken);
+        originalRequest.headers.Authorization = `Bearer ${refreshedToken}`;
+        return client(originalRequest);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
     }
-);
+  );
+};
+
+installAuthRefreshInterceptor(api);
 
 export default api;

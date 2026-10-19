@@ -1,19 +1,6 @@
-import { useState } from "react";
 import { Link } from "react-router";
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email && email.includes("@")) {
-      setSubscribed(true);
-      setEmail("");
-      setTimeout(() => setSubscribed(false), 5000);
-    }
-  };
-
   return (
     <footer className="w-full bg-[#11110f] text-neutral-300 border-t border-white/10 pt-12 sm:pt-16 md:pt-20 pb-10 sm:pb-12 mt-auto transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
@@ -129,18 +116,10 @@ export default function Footer() {
             <ul className="flex flex-col sm:flex-row md:flex-col gap-3 text-sm text-neutral-400">
               <li>
                 <Link
-                  to="/login"
+                  to="/get-started"
                   className="hover:text-white transition-colors"
                 >
-                  Sign In to Save Recipes
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/signup"
-                  className="hover:text-white transition-colors"
-                >
-                  Create Free Account
+                  Get started and save recipes
                 </Link>
               </li>
               <li>

@@ -1,49 +1,17 @@
-import { useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import { useAuth } from "../context/useAuth";
-import { toggleRecipeLikeInDb } from "../api/recipeApi";
+import { useMemo } from "react";
+import { Link } from "react-router";
+import useRecipeLike from "../hooks/useRecipeLike";
 
 export default function RecipeCard({ recipe }) {
   const { slug, title, image, authorName, category, cookTime, prepTime } =
     recipe || {};
-  const { accessToken, token } = useAuth();
-  const authToken = accessToken || token;
-  const [likeOverride, setLikeOverride] = useState(null);
-  const isLiked =
-    likeOverride?.slug === slug
-      ? likeOverride.liked
-      : Boolean(recipe?.likedByMe);
-  const likesCount =
-    likeOverride?.slug === slug
-      ? likeOverride.likesCount
-      : recipe?.likesCount || 0;
-  const [likeLoading, setLikeLoading] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { isLiked, likesCount, likeLoading, toggleLike } =
+    useRecipeLike(recipe);
 
-  const handleToggleLike = async (e) => {
+  const handleToggleLike = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!slug) return;
-    if (!authToken) {
-      navigate("/login", { state: { from: location } });
-      return;
-    }
-    if (likeLoading) return;
-
-    setLikeLoading(true);
-    try {
-      const result = await toggleRecipeLikeInDb(slug, authToken);
-      setLikeOverride({
-        slug,
-        liked: result.liked,
-        likesCount: result.likesCount,
-      });
-    } catch (error) {
-      console.error("Failed to update recipe like:", error);
-    } finally {
-      setLikeLoading(false);
-    }
+    toggleLike();
   };
 
   // Calculate total time safely from real MongoDB fields

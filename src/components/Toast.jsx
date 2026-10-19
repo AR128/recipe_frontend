@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { useState, useCallback, createContext, useContext } from "react";
 
 const ToastContext = createContext(null);
 
@@ -25,17 +25,20 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const showToast = useCallback((message, type = "info", duration = 4000) => {
-    const id = ++toastCounter;
-    setToasts((prev) => [...prev.slice(-3), { id, message, type }]);
+  const showToast = useCallback(
+    (message, type = "info", duration = 4000) => {
+      const id = ++toastCounter;
+      setToasts((prev) => [...prev.slice(-3), { id, message, type }]);
 
-    if (duration > 0) {
-      setTimeout(() => {
-        dismiss(id);
-      }, duration);
-    }
-    return id;
-  }, [dismiss]);
+      if (duration > 0) {
+        setTimeout(() => {
+          dismiss(id);
+        }, duration);
+      }
+      return id;
+    },
+    [dismiss]
+  );
 
   return (
     <ToastContext.Provider value={showToast}>
@@ -79,6 +82,8 @@ export function ToastProvider({ children }) {
   );
 }
 
+// The provider and its hook intentionally share the context implementation.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) {
@@ -86,4 +91,3 @@ export function useToast() {
   }
   return ctx;
 }
-

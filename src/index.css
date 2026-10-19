@@ -11,9 +11,6 @@
   --font-sans:
     "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
-  --color-culinary-gold: #c9a96e;
-  --color-culinary-amber: #e59834;
-  --color-culinary-dark: #121210;
 }
 
 /* =====================================================
@@ -115,13 +112,6 @@ body {
 }
 
 /* =====================================================
-   Typography & Editorial Accents
-   ===================================================== */
-.font-display {
-  font-family: "Playfair Display", Georgia, serif;
-}
-
-/* =====================================================
    Animations & Utilities
    ===================================================== */
 @keyframes fadeIn {
@@ -136,25 +126,4 @@ body {
 }
 .animate-fade-in {
   animation: fadeIn 0.35s ease both;
-}
-
-@keyframes pulseGlow {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-
-.auto-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: 24px;
 }

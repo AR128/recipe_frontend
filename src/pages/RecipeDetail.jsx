@@ -1,52 +1,56 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router";
-import { getRecipe, toggleRecipeLikeInDb } from "../api/recipeApi";
+import { Link, useParams } from "react-router";
+import { getRecipe } from "../api/recipeApi";
 import CommentSection from "../components/CommentSection";
+import useRecipeLike from "../hooks/useRecipeLike";
 import { useAuth } from "../context/useAuth";
 
 export default function RecipeDetail() {
   const { slug } = useParams();
+  const { loading: authLoading } = useAuth();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [likeOverride, setLikeOverride] = useState(null);
-  const [likeLoading, setLikeLoading] = useState(false);
   const [checkedIngs, setCheckedIngs] = useState(new Set());
   const [baseServings, setBaseServings] = useState(4);
   const [servings, setServings] = useState(4);
   const [copied, setCopied] = useState(false);
-  const { accessToken, token } = useAuth();
-  const authToken = accessToken || token;
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isLiked =
-    likeOverride?.slug === slug
-      ? likeOverride.liked
-      : Boolean(recipe?.likedByMe);
-  const likesCount =
-    likeOverride?.slug === slug
-      ? likeOverride.likesCount
-      : recipe?.likesCount || 0;
+  const { isLiked, likesCount, likeLoading, toggleLike } =
+    useRecipeLike(recipe);
 
   useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    setError("");
+    if (!slug || authLoading) return undefined;
+    const controller = new AbortController();
 
-    getRecipe(slug)
-      .then((data) => {
-        const fetchedRecipe = data.recipe || data;
-        setRecipe(fetchedRecipe);
-        const initialServings =
-          Number(fetchedRecipe.servings) > 0
-            ? Number(fetchedRecipe.servings)
-            : 4;
-        setBaseServings(initialServings);
-        setServings(initialServings);
-      })
-      .catch(() => setError("Failed to load recipe. Please try again."))
-      .finally(() => setLoading(false));
-  }, [slug]);
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return;
+      setLoading(true);
+      setError("");
+
+      getRecipe(slug, controller.signal)
+        .then((data) => {
+          if (controller.signal.aborted) return;
+          const fetchedRecipe = data.recipe || data;
+          setRecipe(fetchedRecipe);
+          const initialServings =
+            Number(fetchedRecipe.servings) > 0
+              ? Number(fetchedRecipe.servings)
+              : 4;
+          setBaseServings(initialServings);
+          setServings(initialServings);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) {
+            setError("Failed to load recipe. Please try again.");
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
+        });
+    });
+
+    return () => controller.abort();
+  }, [slug, authLoading]);
 
   const ingredients = recipe?.ingredients || [];
   const instructions = recipe?.steps || recipe?.instructions || [];
@@ -65,28 +69,6 @@ export default function RecipeDetail() {
     const values = [recipe?.prepTime, recipe?.cookTime].filter(Boolean);
     return values.length ? values.join(" + ") : "30 mins";
   }, [recipe]);
-
-  const toggleLike = async () => {
-    if (!authToken) {
-      navigate("/login", { state: { from: location } });
-      return;
-    }
-    if (likeLoading) return;
-
-    setLikeLoading(true);
-    try {
-      const result = await toggleRecipeLikeInDb(slug, authToken);
-      setLikeOverride({
-        slug,
-        liked: result.liked,
-        likesCount: result.likesCount,
-      });
-    } catch (error) {
-      console.error("Failed to update recipe like:", error);
-    } finally {
-      setLikeLoading(false);
-    }
-  };
 
   const toggleIngredient = (index) => {
     setCheckedIngs((prev) => {

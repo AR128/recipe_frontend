@@ -1,22 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../context/useAuth";
-import { useTheme } from "../context/useTheme";
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(
     () => typeof window !== "undefined" && window.scrollY > 20
   );
-
-  const toggleTheme = () => {
-    const isCurrentlyDark = document.documentElement.classList.contains("dark");
-    setTheme(isCurrentlyDark ? "light" : "dark");
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,77 +84,48 @@ export default function Navbar() {
           </Link>
 
           {/* Center Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link
-              to="/recipes"
-              className="text-xs font-semibold uppercase tracking-[0.18em] text-[#F5F0E8]/90 hover:text-[#C9A96E] transition-colors"
-            >
-              All Recipes
-            </Link>
+          <div className="relative left-3 hidden items-center gap-7 lg:gap-9 md:flex">
             <a
               href="/#how-it-works"
-              className="text-xs font-semibold uppercase tracking-[0.18em] text-[#F5F0E8]/90 hover:text-[#C9A96E] transition-colors"
+              className="text-xs lg:text-sm font-semibold uppercase tracking-[0.16em] text-[#F5F0E8]/90 hover:text-[#C9A96E] transition-colors"
             >
               How It Works
             </a>
             <a
               href="/#creators"
-              className="text-xs font-semibold uppercase tracking-[0.18em] text-[#F5F0E8]/90 hover:text-[#C9A96E] transition-colors"
+              className="text-xs lg:text-sm font-semibold uppercase tracking-[0.16em] text-[#F5F0E8]/90 hover:text-[#C9A96E] transition-colors"
             >
               Bloggers
             </a>
           </div>
 
           {/* Right Action Items */}
-          <div className="hidden md:flex items-center gap-5">
+          <div className="hidden md:flex items-center gap-5 lg:gap-6">
             {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <Link
-                  to="/create-post"
-                  className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-full border border-[#C9A96E]/40 text-[#E7CA8D] hover:bg-[#C9A96E]/10 transition-colors"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Share Recipe
-                </Link>
+              <div className="flex items-center gap-4 lg:gap-5">
                 <Link
                   to="/account"
                   id="navbar-profile-btn"
-                  className="flex items-center gap-2.5 p-1 rounded-full border border-white/15 hover:border-[#C9A96E]/60 bg-white/5 hover:bg-white/10 transition-all group"
+                  className="flex max-w-48 items-center gap-2 p-1.5 rounded-full border border-white/15 hover:border-[#C9A96E]/60 bg-white/5 hover:bg-white/10 transition-all group"
                   title={`Signed in as ${user?.name || user?.username} • Go to Account Dashboard`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#C9A96E] to-[#E7CA8D] text-[#121210] font-serif font-black text-xs flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#C9A96E] to-[#E7CA8D] text-[#121210] font-serif font-black text-sm flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                     {(user?.name || user?.username || "?")
                       .slice(0, 2)
                       .toUpperCase()}
                   </div>
-                  <span className="hidden lg:inline text-xs font-semibold text-white group-hover:text-[#C9A96E] pr-2 transition-colors">
+                  <span className="hidden max-w-28 truncate pr-2 text-sm font-semibold text-white transition-colors group-hover:text-[#C9A96E] lg:inline">
                     {user?.name || user?.username}
                   </span>
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-5">
+              <div className="flex items-center">
                 <Link
-                  to="/login"
-                  className="text-xs font-semibold uppercase tracking-wider text-[#F5F0E8] hover:text-[#C9A96E] transition-colors"
+                  to="/get-started"
+                  className="text-xs lg:text-sm font-semibold uppercase tracking-wider px-5 lg:px-6 py-3 rounded-full bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#0A0A0A] hover:brightness-105 shadow-md shadow-[#C9A96E]/20 transition-all"
                 >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  className="text-xs font-semibold uppercase tracking-wider px-5 py-2.5 rounded-full bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#0A0A0A] hover:brightness-105 shadow-md shadow-[#C9A96E]/20 transition-all"
-                >
-                  Join Club
+                  Get started
                 </Link>
               </div>
             )}
@@ -237,7 +201,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          <div className="flex-1 px-6 py-6 flex flex-col justify-between">
+          <div className="flex min-h-0 flex-1 flex-col px-6 py-6">
             {/* Authenticated user quick pill in drawer */}
             {isAuthenticated && (
               <Link
@@ -262,21 +226,13 @@ export default function Navbar() {
             )}
 
             {/* Navigation links */}
-            <div className="flex flex-col gap-5 text-xl font-serif">
-              <Link
-                to="/recipes"
-                onClick={() => setMenuOpen(false)}
-                className="text-[#F5F0E8] hover:text-[#C9A96E] transition-colors flex items-center justify-between py-1"
-              >
-                <span>All Recipes Collection</span>
-                <span className="text-sm font-sans text-white/30">→</span>
-              </Link>
+            <div className="my-auto flex flex-col gap-5 py-8 text-xl font-serif">
               <a
-                href="/#categories"
+                href="/#trending"
                 onClick={() => setMenuOpen(false)}
                 className="text-[#F5F0E8] hover:text-[#C9A96E] transition-colors flex items-center justify-between py-1"
               >
-                <span>Browse Categories</span>
+                <span>Trending Now</span>
                 <span className="text-sm font-sans text-white/30">→</span>
               </a>
               <a
@@ -298,7 +254,7 @@ export default function Navbar() {
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-6 border-t border-white/10 mt-8 flex flex-col gap-3 font-sans text-sm">
+            <div className="mt-auto flex shrink-0 flex-col gap-3 border-t border-white/10 pt-6 font-sans text-sm">
               {isAuthenticated ? (
                 <>
                   <Link
@@ -323,22 +279,13 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <>
-                  <Link
-                    to="/login"
-                    onClick={() => setMenuOpen(false)}
-                    className="py-3.5 text-center rounded-xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/signup"
-                    onClick={() => setMenuOpen(false)}
-                    className="py-3.5 text-center rounded-xl bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#0A0A0A] font-bold text-xs uppercase tracking-wider shadow-md"
-                  >
-                    Join the Club
-                  </Link>
-                </>
+                <Link
+                  to="/get-started"
+                  onClick={() => setMenuOpen(false)}
+                  className="py-3.5 text-center rounded-xl bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#0A0A0A] font-bold text-xs uppercase tracking-wider shadow-md"
+                >
+                  Get started
+                </Link>
               )}
             </div>
           </div>
