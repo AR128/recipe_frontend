@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router";
 import { getPublicUserProfile } from "../api/recipeApi";
 import RecipeCard from "../components/RecipeCard";
@@ -23,6 +23,7 @@ function UserProfile() {
   const [totalRecipes, setTotalRecipes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const recipesRef = useRef(null);
 
   const [prevUsername, setPrevUsername] = useState(null);
 
@@ -94,6 +95,13 @@ function UserProfile() {
   }
 
   const initials = getInitials(userData);
+  const changePage = (nextPage) => {
+    setPage(nextPage);
+    recipesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] transition-colors pb-20">
@@ -163,7 +171,7 @@ function UserProfile() {
         </div>
 
         {/* Recipes Section */}
-        <div>
+        <div ref={recipesRef} className="scroll-mt-28">
           <div className="flex justify-between items-center mb-6 sm:mb-8 pb-3 sm:pb-4 border-b border-neutral-200/80 dark:border-white/10">
             <div>
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#C9A96E] block mb-1">
@@ -201,7 +209,7 @@ function UserProfile() {
               <button
                 type="button"
                 disabled={page <= 1}
-                onClick={() => setPage((current) => current - 1)}
+                onClick={() => changePage(page - 1)}
                 className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
               >
                 Previous
@@ -212,7 +220,7 @@ function UserProfile() {
               <button
                 type="button"
                 disabled={page >= pages}
-                onClick={() => setPage((current) => current + 1)}
+                onClick={() => changePage(page + 1)}
                 className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
               >
                 Next

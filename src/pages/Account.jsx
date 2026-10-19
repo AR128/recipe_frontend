@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../context/useAuth";
 import { useTheme } from "../context/useTheme";
@@ -18,14 +18,23 @@ function getInitials(user) {
   return name.slice(0, 2).toUpperCase() || "?";
 }
 
-function PageControls({ page, pages, onChange }) {
+function PageControls({ page, pages, onChange, scrollTargetRef }) {
   if (pages <= 1) return null;
+
+  const changePage = (nextPage) => {
+    onChange(nextPage);
+    scrollTargetRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <div className="mt-8 flex items-center justify-center gap-4">
       <button
         type="button"
         disabled={page <= 1}
-        onClick={() => onChange(page - 1)}
+        onClick={() => changePage(page - 1)}
         className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
       >
         Previous
@@ -36,7 +45,7 @@ function PageControls({ page, pages, onChange }) {
       <button
         type="button"
         disabled={page >= pages}
-        onClick={() => onChange(page + 1)}
+        onClick={() => changePage(page + 1)}
         className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
       >
         Next
@@ -50,6 +59,9 @@ function Account() {
   const { theme, setTheme } = useTheme();
   const authToken = accessToken || token;
   const navigate = useNavigate();
+  const myPostsRef = useRef(null);
+  const savedPostsRef = useRef(null);
+  const commentedPostsRef = useRef(null);
 
   // Active Sidebar View
   const [activeTab, setActiveTab] = useState("my-posts"); // 'my-posts' | 'saved-recipes' | 'commented-posts' | 'settings'
@@ -535,7 +547,7 @@ function Account() {
 
             {/* VIEW 1: MY PUBLISHED POSTS */}
             {activeTab === "my-posts" && (
-              <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
+              <div ref={myPostsRef} className="scroll-mt-28 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-100 dark:border-white/5">
                   <div>
                     <h3 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white">
@@ -600,13 +612,14 @@ function Account() {
                     setMyPostsPage(page);
                     fetchMyPosts(page);
                   }}
+                  scrollTargetRef={myPostsRef}
                 />
               </div>
             )}
 
             {/* VIEW 2: SAVED & BOOKMARKED RECIPES */}
             {activeTab === "saved-recipes" && (
-              <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
+              <div ref={savedPostsRef} className="scroll-mt-28 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-100 dark:border-white/5">
                   <div>
                     <div className="flex items-center gap-2">
@@ -667,13 +680,14 @@ function Account() {
                   onChange={(page) => {
                     setSavedPage(page);
                   }}
+                  scrollTargetRef={savedPostsRef}
                 />
               </div>
             )}
 
             {/* VIEW 3: COMMENTED DISCUSSIONS */}
             {activeTab === "commented-posts" && (
-              <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
+              <div ref={commentedPostsRef} className="scroll-mt-28 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
                 <div className="mb-8 pb-4 border-b border-neutral-100 dark:border-white/5">
                   <h3 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white">
                     Community Discussions &amp; Notes
@@ -722,6 +736,7 @@ function Account() {
                     setCommentedPage(page);
                     fetchCommentedPosts(page);
                   }}
+                  scrollTargetRef={commentedPostsRef}
                 />
               </div>
             )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../context/useAuth";
 import { getComments, postComment } from "../api/recipeApi";
@@ -25,6 +25,7 @@ function CommentSection({ slug }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const commentsRef = useRef(null);
 
   const [prevSlug, setPrevSlug] = useState(null);
 
@@ -93,9 +94,18 @@ function CommentSection({ slug }) {
     }
   };
 
+  const changeCommentsPage = (nextPage) => {
+    setCommentsPage(nextPage);
+    commentsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <section
-      className="pt-9 mt-9 border-t border-neutral-200 dark:border-neutral-800 transition-colors"
+      ref={commentsRef}
+      className="scroll-mt-28 pt-9 mt-9 border-t border-neutral-200 dark:border-neutral-800 transition-colors"
       id="comments"
     >
       <h2 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white mb-6 transition-colors">
@@ -275,7 +285,7 @@ function CommentSection({ slug }) {
           <button
             type="button"
             disabled={commentsPage <= 1}
-            onClick={() => setCommentsPage((page) => page - 1)}
+            onClick={() => changeCommentsPage(commentsPage - 1)}
             className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
           >
             Previous
@@ -286,7 +296,7 @@ function CommentSection({ slug }) {
           <button
             type="button"
             disabled={commentsPage >= commentsPages}
-            onClick={() => setCommentsPage((page) => page + 1)}
+            onClick={() => changeCommentsPage(commentsPage + 1)}
             className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
           >
             Next
