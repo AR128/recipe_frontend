@@ -391,16 +391,6 @@ function Account() {
               <span>Settings</span>
             </button>
           </div>
-
-          <div>
-            <Link
-              to="/create-post"
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold uppercase tracking-wider shadow-sm hover:bg-[#C9A96E] dark:hover:bg-[#E7CA8D] dark:hover:text-black transition-all"
-            >
-              <span className="text-sm font-bold">+</span>
-              <span>Share Recipe</span>
-            </Link>
-          </div>
         </div>
 
         {/* TWO-COLUMN SIDEBAR + CONTENT LAYOUT */}
