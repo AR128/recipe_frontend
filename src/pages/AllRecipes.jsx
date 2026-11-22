@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router";
-import RecipeCard from "../components/RecipeCard";
+import RecipeCard, { RecipeCardSkeleton } from "../components/RecipeCard";
 import FoodieCard from "../components/FoodieCard";
 import { getRecipes, getCategories, searchUsers } from "../api/recipeApi";
 import { getApiErrorMessage } from "../utils/errorUtils";
@@ -20,22 +20,16 @@ function useDebounce(value, delay) {
   return debounced;
 }
 
-function RecipeCardSkeleton() {
+function FoodieCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 overflow-hidden animate-pulse">
-      <div className="w-full aspect-4/3 bg-neutral-200 dark:bg-neutral-800" />
-      <div className="p-5 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="h-3 w-16 bg-neutral-200 dark:bg-neutral-800 rounded" />
-          <div className="h-3 w-12 bg-neutral-200 dark:bg-neutral-800 rounded" />
-        </div>
-        <div className="h-5 w-4/5 bg-neutral-200 dark:bg-neutral-800 rounded mt-1" />
-        <div className="h-4 w-1/2 bg-neutral-200 dark:bg-neutral-800 rounded" />
-        <div className="pt-4 border-t border-neutral-100 dark:border-white/5 flex justify-between items-center mt-2">
-          <div className="h-3 w-20 bg-neutral-200 dark:bg-neutral-800 rounded" />
-          <div className="h-3 w-12 bg-neutral-200 dark:bg-neutral-800 rounded" />
-        </div>
-      </div>
+    <div
+      aria-hidden="true"
+      className="flex flex-col items-center text-center p-6 rounded-2xl bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 animate-pulse"
+    >
+      <div className="w-16 h-16 rounded-full bg-neutral-200 dark:bg-white/10 mb-4" />
+      <div className="h-4 w-28 rounded bg-neutral-200 dark:bg-white/10 mb-2" />
+      <div className="h-3 w-20 rounded bg-neutral-200 dark:bg-white/10 mb-4" />
+      <div className="h-8 w-full rounded-xl bg-neutral-200 dark:bg-white/10" />
     </div>
   );
 }
@@ -84,7 +78,7 @@ export default function AllRecipes() {
 
   const searchInputRef = useRef(null);
   const resultsRef = useRef(null);
-  const debouncedSearch = useDebounce(search, 350);
+  const debouncedSearch = useDebounce(search, 300);
 
   // Fetch real categories directly from MongoDB
   useEffect(() => {
@@ -194,7 +188,7 @@ export default function AllRecipes() {
     return fetchRecipes();
   }, [fetchRecipes]);
 
-  // Handle user search in MongoDB - loads all community bloggers and live-filters
+  // Handle user search in MongoDB
   useEffect(() => {
     if (searchTab !== "users") {
       return undefined;
@@ -300,11 +294,17 @@ export default function AllRecipes() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-white transition-colors duration-200 pt-20 sm:pt-24 md:pt-28 pb-16 sm:pb-24">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#141412] text-neutral-900 dark:text-white transition-colors duration-200 pt-20 sm:pt-24 md:pt-28 pb-16 sm:pb-24 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-[11px] sm:text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-4 sm:mb-6">
-          <Link to="/" className="hover:text-[#C9A96E] transition-colors">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-2 text-[11px] sm:text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-4 sm:mb-6"
+        >
+          <Link
+            to="/"
+            className="hover:text-[#C9A96E] transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
+          >
             Home
           </Link>
           <span>/</span>
@@ -319,20 +319,20 @@ export default function AllRecipes() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-neutral-900 dark:text-white tracking-tight mb-2 sm:mb-4">
             Full Recipe Collection
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-neutral-600 dark:text-neutral-400 font-light max-w-2xl leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-neutral-600 dark:text-neutral-300 font-normal max-w-2xl leading-relaxed">
             Search across all authentic dishes shared by home cooks, filter by
             cuisine, and save recipes directly to your personal cookbook.
           </p>
         </div>
 
         {/* SEARCH & FILTER CONSOLE */}
-        <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm mb-8 sm:mb-12">
+        <div className="bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm mb-8 sm:mb-12">
           {/* Dual Category Tabs */}
           <div className="flex items-center gap-6 mb-6 border-b border-neutral-200/80 dark:border-white/10 pb-4">
             <button
               type="button"
               onClick={() => updateSearchTab("recipes")}
-              className={`text-xs font-bold uppercase tracking-widest pb-1 relative transition-colors ${
+              className={`text-xs font-bold uppercase tracking-widest pb-1 relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] rounded ${
                 searchTab === "recipes"
                   ? "text-[#C9A96E]"
                   : "text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
@@ -340,7 +340,7 @@ export default function AllRecipes() {
             >
               Search Recipes
               {searchTab === "recipes" && (
-                <span className="absolute -bottom-4.5 left-0 w-full h-[2px] bg-[#C9A96E]" />
+                <span className="absolute -bottom-4.5 left-0 w-full h-0.5 bg-[#C9A96E]" />
               )}
             </button>
 
@@ -349,7 +349,7 @@ export default function AllRecipes() {
             <button
               type="button"
               onClick={() => updateSearchTab("users")}
-              className={`text-xs font-bold uppercase tracking-widest pb-1 relative transition-colors ${
+              className={`text-xs font-bold uppercase tracking-widest pb-1 relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] rounded ${
                 searchTab === "users"
                   ? "text-[#C9A96E]"
                   : "text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
@@ -357,7 +357,7 @@ export default function AllRecipes() {
             >
               Find Food Bloggers
               {searchTab === "users" && (
-                <span className="absolute -bottom-4.5 left-0 w-full h-[2px] bg-[#C9A96E]" />
+                <span className="absolute -bottom-4.5 left-0 w-full h-0.5 bg-[#C9A96E]" />
               )}
             </button>
           </div>
@@ -370,6 +370,7 @@ export default function AllRecipes() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              aria-hidden="true"
             >
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -389,13 +390,13 @@ export default function AllRecipes() {
               }
               value={search}
               onChange={(e) => updateSearch(e.target.value)}
-              className="w-full bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl pl-12 pr-12 py-3.5 outline-none text-base text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-[#C9A96E] dark:focus:border-[#C9A96E] transition-all"
+              className="w-full bg-neutral-100 dark:bg-[#141412] border border-neutral-200 dark:border-white/10 rounded-2xl pl-12 pr-12 py-3.5 outline-none text-base text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/25 transition-all"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => updateSearch("")}
-                className="absolute right-4 text-neutral-400 hover:text-neutral-900 dark:hover:text-white p-1 text-sm rounded-full transition-colors"
+                className="absolute right-4 text-neutral-400 hover:text-neutral-900 dark:hover:text-white p-1 text-sm rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                 aria-label="Clear search"
               >
                 ✕
@@ -403,7 +404,7 @@ export default function AllRecipes() {
             )}
           </div>
 
-          {/* Categories Horizontal Strip (When searching recipes) */}
+          {/* Categories Horizontal Strip */}
           {searchTab === "recipes" && categories.length > 1 && (
             <div className="pt-2">
               <div className="flex items-center justify-between mb-3">
@@ -414,7 +415,7 @@ export default function AllRecipes() {
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="text-xs font-semibold text-[#C9A96E] hover:underline flex items-center gap-1"
+                    className="text-xs font-semibold text-[#C9A96E] hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] rounded"
                   >
                     <span>Clear all filters</span>
                     <span>✕</span>
@@ -431,10 +432,10 @@ export default function AllRecipes() {
                       key={cat}
                       type="button"
                       onClick={() => updateCategory(cat)}
-                      className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
+                      className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                         isActive
-                          ? "bg-gradient-to-r from-[#C9A96E] to-[#DAB97E] text-[#121210] border-transparent shadow-md shadow-[#C9A96E]/20 font-extrabold"
-                          : "bg-neutral-100 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 border-neutral-200/80 dark:border-white/10 hover:border-[#C9A96E]/50 hover:bg-neutral-200/50 dark:hover:bg-white/10"
+                          ? "bg-linear-to-r from-[#C9A96E] to-[#DAB97E] text-[#141412] border-transparent shadow-md shadow-[#C9A96E]/20 font-extrabold"
+                          : "bg-neutral-100 dark:bg-[#141412] text-neutral-700 dark:text-neutral-300 border-neutral-200/80 dark:border-white/10 hover:border-[#C9A96E]/50 hover:bg-neutral-200/50 dark:hover:bg-white/5"
                       }`}
                     >
                       <span>{icon}</span>
@@ -465,22 +466,44 @@ export default function AllRecipes() {
             </div>
 
             {usersLoading ? (
-              <div className="text-center py-24 text-neutral-400 font-serif italic animate-pulse">
-                Searching community bloggers...
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, idx) => (
+                  <FoodieCardSkeleton key={`blogger-skeleton-${idx}`} />
+                ))}
               </div>
             ) : matchedUsers.length === 0 ? (
-              <div className="text-center py-24 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl p-8">
-                <span className="text-4xl mb-3 block">👨‍🍳</span>
+              <div className="text-center py-20 bg-white dark:bg-[#1c1c18] border border-dashed border-neutral-200 dark:border-white/15 rounded-3xl p-8 max-w-xl mx-auto">
+                <div className="w-14 h-14 rounded-2xl bg-[#C9A96E]/15 border border-[#C9A96E]/30 text-[#C9A96E] flex items-center justify-center text-2xl mx-auto mb-4">
+                  👨‍🍳
+                </div>
                 <h3 className="text-xl font-serif font-bold text-neutral-900 dark:text-white mb-2">
                   {hasSearch
-                    ? `No food bloggers found matching "${search}"`
+                    ? `No bloggers match "${search}"`
                     : "No food bloggers registered yet"}
                 </h3>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 leading-relaxed">
                   {hasSearch
-                    ? "Try searching by another username or check your spelling, or switch back to the recipes tab."
+                    ? "Try a different name or handle, clear your search query, or browse community recipes instead."
                     : "Be the first to create an account and share your recipes with our food community!"}
                 </p>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {hasSearch && (
+                    <button
+                      type="button"
+                      onClick={() => updateSearch("")}
+                      className="px-5 py-2.5 rounded-full bg-[#C9A96E] text-[#141412] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
+                    >
+                      Clear Search
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => updateSearchTab("recipes")}
+                    className="px-5 py-2.5 rounded-full bg-neutral-100 dark:bg-[#141412] border border-neutral-200 dark:border-white/15 text-neutral-800 dark:text-white font-bold text-xs uppercase tracking-wider hover:border-[#C9A96E] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
+                  >
+                    Browse Recipes
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -524,7 +547,7 @@ export default function AllRecipes() {
                 <button
                   type="button"
                   onClick={() => setShowSortMenu((prev) => !prev)}
-                  className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors shadow-sm"
+                  className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                 >
                   <span className="text-neutral-400 font-normal">Sort:</span>
                   <span className="text-[#C9A96E]">{sortBy}</span>
@@ -535,7 +558,8 @@ export default function AllRecipes() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className={`transition-transform duration-200 ${
+                    aria-hidden="true"
+                    className={`transition-transform duration-150 ${
                       showSortMenu ? "rotate-180" : ""
                     }`}
                   >
@@ -544,7 +568,7 @@ export default function AllRecipes() {
                 </button>
 
                 {showSortMenu && (
-                  <div className="absolute right-0 top-12 w-48 bg-white dark:bg-[#161614] border border-neutral-200 dark:border-white/15 shadow-2xl rounded-2xl py-2 z-40 animate-fade-in">
+                  <div className="absolute right-0 top-12 w-48 bg-white dark:bg-[#1c1c18] border border-neutral-200 dark:border-white/15 shadow-2xl rounded-2xl py-2 z-40 animate-fade-in">
                     {["Newest", "Most Popular", "Quickest"].map((option) => (
                       <button
                         key={option}
@@ -553,7 +577,7 @@ export default function AllRecipes() {
                           setSortBy(option);
                           setShowSortMenu(false);
                         }}
-                        className={`w-full px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors ${
+                        className={`w-full px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider flex items-center justify-between hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#C9A96E] ${
                           sortBy === option
                             ? "text-[#C9A96E]"
                             : "text-neutral-700 dark:text-neutral-300"
@@ -578,14 +602,14 @@ export default function AllRecipes() {
                 <button
                   type="button"
                   onClick={fetchRecipes}
-                  className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
+                  className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                 >
                   Retry
                 </button>
               </div>
             )}
 
-            {/* Loading Skeletons */}
+            {/* Card-Shaped Loading Skeletons */}
             {loading && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 {Array.from({ length: 8 }).map((_, idx) => (
@@ -594,35 +618,40 @@ export default function AllRecipes() {
               </div>
             )}
 
-            {/* Empty State */}
+            {/* Enhanced Empty State */}
             {!loading && !error && recipes.length === 0 && (
-              <div className="text-center py-24 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl p-8 max-w-xl mx-auto">
-                <span className="text-5xl mb-4 block">🍳</span>
+              <div className="text-center py-20 bg-white dark:bg-[#1c1c18] border border-dashed border-neutral-200 dark:border-white/15 rounded-3xl p-8 max-w-xl mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-[#C9A96E]/15 border border-[#C9A96E]/30 text-[#C9A96E] flex items-center justify-center text-3xl mx-auto mb-4">
+                  🍳
+                </div>
                 <h3 className="text-2xl font-serif font-bold text-neutral-900 dark:text-white mb-3">
-                  No recipes found
+                  {hasSearch
+                    ? `No recipes found for "${search}"`
+                    : selectedCategory !== "All"
+                      ? `No ${selectedCategory} recipes yet`
+                      : "No recipes shared yet"}
                 </h3>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-8 leading-relaxed font-light">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-8 leading-relaxed">
                   {hasActiveFilters
-                    ? "No dishes match your current search query or category filter. Try clearing filters or exploring a different cuisine."
+                    ? "Try searching with fewer keywords, switching categories, or clearing your active filters to see all dishes."
                     : "Be the very first home cook to share a recipe with our community!"}
                 </p>
-                <div className="flex flex-wrap gap-4 justify-center">
-                  {hasActiveFilters ? (
+                <div className="flex flex-wrap gap-3 justify-center">
+                  {hasActiveFilters && (
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="px-6 py-3 rounded-full bg-[#C9A96E] text-[#121210] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-md"
+                      className="px-6 py-3 rounded-full bg-[#C9A96E] text-[#141412] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                     >
-                      Clear Filters
+                      Clear All Filters
                     </button>
-                  ) : (
-                    <Link
-                      to="/create-post"
-                      className="px-6 py-3 rounded-full bg-[#C9A96E] text-[#121210] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-md"
-                    >
-                      + Share The First Recipe
-                    </Link>
                   )}
+                  <Link
+                    to="/create-post"
+                    className="px-6 py-3 rounded-full bg-neutral-100 dark:bg-[#141412] border border-neutral-200 dark:border-white/15 text-neutral-900 dark:text-white font-bold text-xs uppercase tracking-wider hover:border-[#C9A96E] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
+                  >
+                    + Share a Recipe
+                  </Link>
                 </div>
               </div>
             )}
@@ -665,7 +694,7 @@ function PageControls({ page, pages, onChange, scrollTargetRef }) {
         type="button"
         disabled={page <= 1}
         onClick={() => changePage(page - 1)}
-        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-white/15 hover:border-[#C9A96E] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
       >
         Previous
       </button>
@@ -676,7 +705,7 @@ function PageControls({ page, pages, onChange, scrollTargetRef }) {
         type="button"
         disabled={page >= pages}
         onClick={() => changePage(page + 1)}
-        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-white/15 hover:border-[#C9A96E] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
       >
         Next
       </button>
