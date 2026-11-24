@@ -21,15 +21,22 @@ const getAuthErrorMessage = (error) => {
 export default function GetStarted() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { isAuthenticated, loading, loginWithGoogle } = useAuth();
+  const {
+    accessRestriction,
+    isAuthenticated,
+    loading,
+    loginWithGoogle,
+  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (!loading && accessRestriction) {
+      navigate("/access-status", { replace: true });
+    } else if (!loading && isAuthenticated) {
       navigate(location.state?.from || "/", { replace: true });
     }
-  }, [isAuthenticated, loading, location.state, navigate]);
+  }, [accessRestriction, isAuthenticated, loading, location.state, navigate]);
 
   const handleGoogleSignIn = async () => {
     setError("");
@@ -39,6 +46,16 @@ export default function GetStarted() {
       await loginWithGoogle();
       navigate(location.state?.from || "/", { replace: true });
     } catch (authError) {
+      if (
+        [
+          "ACCOUNT_REMOVED",
+          "ACCESS_REQUEST_PENDING",
+          "ACCESS_REQUEST_DENIED",
+        ].includes(authError.response?.data?.code)
+      ) {
+        navigate("/access-status", { replace: true });
+        return;
+      }
       setError(getAuthErrorMessage(authError));
     } finally {
       setSubmitting(false);

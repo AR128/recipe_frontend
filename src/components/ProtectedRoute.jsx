@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "../context/useAuth";
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { accessRestriction, isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -15,6 +15,10 @@ const ProtectedRoute = () => {
         <div className="h-8 w-8 animate-spin rounded-full border-3 border-neutral-300 border-t-[#C9A96E] dark:border-neutral-700 dark:border-t-[#C9A96E]" />
       </div>
     );
+  }
+
+  if (accessRestriction) {
+    return <Navigate to="/access-status" replace />;
   }
 
   if (!isAuthenticated) {

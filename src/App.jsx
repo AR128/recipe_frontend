@@ -10,7 +10,9 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [location.pathname]);
 
-  const isAuthPage = location.pathname === "/get-started";
+  const isAuthPage =
+    location.pathname === "/get-started" ||
+    location.pathname === "/access-status";
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900 dark:bg-[#0a0a0a] dark:text-neutral-100 transition-colors duration-200 ease-in-out">

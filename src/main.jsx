@@ -3,6 +3,7 @@ import { Navigate, RouterProvider, createBrowserRouter } from "react-router";
 import "./index.css";
 import App from "./App.jsx";
 import GetStarted from "./pages/GetStarted.jsx";
+import AccessStatus from "./pages/AccessStatus.jsx";
 import RecipeFeed from "./pages/RecipeFeed.jsx";
 import AllRecipes from "./pages/AllRecipes.jsx";
 import RecipeDetail from "./pages/RecipeDetail.jsx";
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "/get-started",
         element: <GetStarted />,
+      },
+      {
+        path: "/access-status",
+        element: <AccessStatus />,
       },
       {
         path: "/login",

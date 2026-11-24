@@ -12,7 +12,27 @@ import { AuthContext } from "./AuthContext.js";
 export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [accessRestriction, setAccessRestriction] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const applyAccessError = (error) => {
+    const code = error.response?.data?.code;
+    if (
+      ![
+        "ACCOUNT_REMOVED",
+        "ACCESS_REQUEST_PENDING",
+        "ACCESS_REQUEST_DENIED",
+      ].includes(code)
+    ) {
+      return false;
+    }
+
+    setAccessToken(null);
+    setUser(null);
+    setAccessRestriction(code);
+    return true;
+  };
+
   useEffect(() => {
     let currentOperation = 0;
 
@@ -23,6 +43,7 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(null);
         setAccessToken(null);
         setUser(null);
+        setAccessRestriction(null);
         setLoading(false);
         return;
       }
@@ -32,22 +53,19 @@ export const AuthProvider = ({ children }) => {
         if (operation !== currentOperation) return;
 
         setAuthToken(idToken);
-        setAccessToken(idToken);
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName || "",
-          fullName: firebaseUser.displayName || "",
-          username: "",
-        });
-
         const response = await api.get("/profile");
         if (operation === currentOperation) {
+          setAccessToken(idToken);
           setUser({ ...response.data.user, uid: firebaseUser.uid });
+          setAccessRestriction(null);
         }
       } catch (error) {
         if (operation === currentOperation) {
-          console.error("Unable to synchronize the Firebase profile:", error);
+          if (!applyAccessError(error)) {
+            setAccessToken(null);
+            setUser(null);
+            console.error("Unable to synchronize the Firebase profile:", error);
+          }
         }
       } finally {
         if (operation === currentOperation) setLoading(false);
@@ -67,9 +85,38 @@ export const AuthProvider = ({ children }) => {
     const { user: firebaseUser } = await signInWithPopup(auth, provider);
     const idToken = await firebaseUser.getIdToken();
     setAuthToken(idToken);
-    setAccessToken(idToken);
-    const response = await api.get("/profile");
-    setUser({ ...response.data.user, uid: firebaseUser.uid });
+    try {
+      const response = await api.get("/profile");
+      setAccessToken(idToken);
+      setUser({ ...response.data.user, uid: firebaseUser.uid });
+      setAccessRestriction(null);
+    } catch (error) {
+      if (!applyAccessError(error)) throw error;
+      throw error;
+    }
+  };
+
+  const requestAccess = async () => {
+    await api.post("/access-request");
+    setAccessRestriction("ACCESS_REQUEST_PENDING");
+  };
+
+  const refreshAccess = async () => {
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser) return false;
+
+    const idToken = await firebaseUser.getIdToken();
+    setAuthToken(idToken);
+    try {
+      const response = await api.get("/profile");
+      setAccessToken(idToken);
+      setUser({ ...response.data.user, uid: firebaseUser.uid });
+      setAccessRestriction(null);
+      return true;
+    } catch (error) {
+      if (applyAccessError(error)) return false;
+      throw error;
+    }
   };
 
   const logout = async () => {
@@ -92,7 +139,10 @@ export const AuthProvider = ({ children }) => {
         token: accessToken,
         user,
         setUser,
+        accessRestriction,
         loginWithGoogle,
+        requestAccess,
+        refreshAccess,
         logout,
         updateProfile,
         isAuthenticated: Boolean(accessToken),
