@@ -5,7 +5,8 @@ import { useTheme } from "../context/useTheme";
 import api from "../api/axios";
 import { deleteRecipePost, getSavedRecipesFromDb } from "../api/recipeApi";
 import EditRecipeModal from "../components/EditRecipeModal";
-import RecipeCard from "../components/RecipeCard";
+import RecipeCard, { RecipeCardSkeleton } from "../components/RecipeCard";
+import { useToast } from "../components/Toast";
 import bannerImg from "../assets/profile-banner.jpg";
 
 function getInitials(user) {
@@ -35,7 +36,7 @@ function PageControls({ page, pages, onChange, scrollTargetRef }) {
         type="button"
         disabled={page <= 1}
         onClick={() => changePage(page - 1)}
-        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-white/15 hover:border-[#C9A96E] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
       >
         Previous
       </button>
@@ -46,7 +47,7 @@ function PageControls({ page, pages, onChange, scrollTargetRef }) {
         type="button"
         disabled={page >= pages}
         onClick={() => changePage(page + 1)}
-        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-neutral-700"
+        className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold disabled:opacity-40 dark:border-white/15 hover:border-[#C9A96E] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
       >
         Next
       </button>
@@ -57,6 +58,7 @@ function PageControls({ page, pages, onChange, scrollTargetRef }) {
 function Account() {
   const { user, updateProfile, accessToken, token, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const showToast = useToast();
   const authToken = accessToken || token;
   const navigate = useNavigate();
   const myPostsRef = useRef(null);
@@ -64,7 +66,7 @@ function Account() {
   const commentedPostsRef = useRef(null);
 
   // Active Sidebar View
-  const [activeTab, setActiveTab] = useState("my-posts"); // 'my-posts' | 'saved-recipes' | 'commented-posts' | 'settings'
+  const [activeTab, setActiveTab] = useState("my-posts");
 
   // Profile Edit State
   const [profileDraft, setProfileDraft] = useState(null);
@@ -78,7 +80,6 @@ function Account() {
   const [myPosts, setMyPosts] = useState([]);
   const [myPostsLoading, setMyPostsLoading] = useState(true);
   const [myPostsError, setMyPostsError] = useState("");
-  const [totalSavesReceived, setTotalSavesReceived] = useState(0);
   const [totalLikesReceived, setTotalLikesReceived] = useState(0);
   const [myPostsPage, setMyPostsPage] = useState(1);
   const [myPostsPages, setMyPostsPages] = useState(1);
@@ -126,7 +127,6 @@ function Account() {
       .get(`/my-posts?page=${page}`)
       .then((res) => {
         setMyPosts(res.data.recipes || []);
-        setTotalSavesReceived(res.data.totalSavesReceived || 0);
         setTotalLikesReceived(res.data.totalLikesReceived || 0);
         setMyPostsTotal(res.data.total || 0);
         setMyPostsPages(res.data.pages || 1);
@@ -212,14 +212,16 @@ function Account() {
         fullName: updatedUser.fullName || updatedUser.name || "",
       });
       setSaveSuccess(true);
+      showToast("Profile updated successfully", "success");
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error(err);
-      setSaveError(
+      const message =
         err.response?.data?.code === "USERNAME_TAKEN"
           ? "That username is already registered. Please choose another."
-          : err.response?.data?.message || "Failed to update profile."
-      );
+          : err.response?.data?.message || "Failed to update profile.";
+      setSaveError(message);
+      showToast(message, "error");
     } finally {
       setSaving(false);
     }
@@ -233,11 +235,15 @@ function Account() {
       setMyPosts((prev) => prev.filter((p) => p._id !== deletingPost._id));
       setMyPostsTotal((total) => Math.max(0, total - 1));
       setActionFeedback(`✓ Post "${deletingPost.title}" deleted successfully.`);
+      showToast(`Deleted "${deletingPost.title}"`, "success");
       setTimeout(() => setActionFeedback(""), 4000);
       setDeletingPost(null);
     } catch (err) {
       console.error("Delete post error:", err);
-      alert(err.response?.data?.message || "Failed to delete recipe post.");
+      showToast(
+        err.response?.data?.message || "Failed to delete recipe post.",
+        "error"
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -248,30 +254,32 @@ function Account() {
       prev.map((p) => (p._id === updated._id ? updated : p))
     );
     setActionFeedback(`✓ Post "${updated.title}" updated successfully.`);
+    showToast(`Updated "${updated.title}"`, "success");
     setTimeout(() => setActionFeedback(""), 4000);
   };
 
   const handleLogout = async () => {
     await logout();
+    showToast("Signed out successfully", "info");
     navigate("/");
   };
 
   const initials = getInitials(user);
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] text-neutral-900 dark:text-white transition-colors pb-24">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#141412] text-neutral-900 dark:text-white transition-colors pb-24 font-sans">
       {/* TOP PROFILE BANNER */}
       <div className="w-full h-44 sm:h-56 md:h-72 relative">
         <img
           src={bannerImg}
-          alt="Chef Profile Cover"
-          className="w-full h-full object-cover brightness-75 dark:brightness-40 transition-all"
+          alt="Chef profile cover backdrop"
+          className="w-full h-full object-cover brightness-75 dark:brightness-45 transition-all"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-[#141412] via-black/30 to-transparent" />
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-12 z-20">
           <Link
             to="/"
-            className="text-white hover:text-[#C9A96E] text-[11px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors drop-shadow-md"
+            className="text-white hover:text-[#C9A96E] text-[11px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors drop-shadow-md rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
           >
             <span>←</span> Back to Community Feed
           </Link>
@@ -281,9 +289,9 @@ function Account() {
       {/* MAIN DASHBOARD CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 relative -mt-12 sm:-mt-16 md:-mt-20 z-10">
         {/* PROFILE HEADER SUMMARY CARD */}
-        <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xl mb-8 flex flex-col md:flex-row items-center sm:items-start md:items-center justify-between gap-6 transition-colors text-center sm:text-left">
+        <div className="bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xl mb-8 flex flex-col md:flex-row items-center sm:items-start md:items-center justify-between gap-6 transition-colors text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-[#141412] bg-gradient-to-tr from-[#C9A96E] to-[#E7CA8D] text-[#121210] font-serif font-black text-2xl sm:text-3xl flex items-center justify-center shadow-lg shrink-0">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-[#1c1c18] bg-linear-to-tr from-[#C9A96E] to-[#E7CA8D] text-[#141412] font-serif font-black text-2xl sm:text-3xl flex items-center justify-center shadow-lg shrink-0">
               {initials}
             </div>
             <div>
@@ -295,7 +303,7 @@ function Account() {
                   Food Blogger
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">
+              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-300 font-medium mt-0.5">
                 @{user?.username} • {user?.email}
               </p>
               <p className="text-xs text-neutral-400 mt-1.5">
@@ -305,25 +313,25 @@ function Account() {
           </div>
 
           {/* Quick Stats Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 md:flex items-center gap-3 sm:gap-4 border-t md:border-t-0 md:border-l border-neutral-200/80 dark:border-white/10 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
-            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
-              <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
+          <div className="grid grid-cols-3 md:flex items-center gap-3 sm:gap-6 border-t md:border-t-0 md:border-l border-neutral-200/80 dark:border-white/10 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
+            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-[#141412] md:bg-transparent md:p-0">
+              <span className="font-sans text-xl sm:text-2xl font-bold text-[#C9A96E] block">
                 {myPostsTotal}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 My Recipes
               </span>
             </div>
-            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
-              <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
+            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-[#141412] md:bg-transparent md:p-0">
+              <span className="font-sans text-xl sm:text-2xl font-bold text-[#C9A96E] block">
                 {totalLikesReceived}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Post Likes
               </span>
             </div>
-            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
-              <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
+            <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-[#141412] md:bg-transparent md:p-0">
+              <span className="font-sans text-xl sm:text-2xl font-bold text-[#C9A96E] block">
                 {commentedTotal}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
@@ -339,10 +347,10 @@ function Account() {
             <button
               type="button"
               onClick={() => setActiveTab("my-posts")}
-              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                 activeTab === "my-posts"
-                  ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20"
-                  : "bg-white dark:bg-[#141412] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
+                  ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20"
+                  : "bg-white dark:bg-[#1c1c18] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
               }`}
             >
               <span>📖</span>
@@ -357,10 +365,10 @@ function Account() {
             <button
               type="button"
               onClick={() => setActiveTab("saved-recipes")}
-              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                 activeTab === "saved-recipes"
-                  ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20"
-                  : "bg-white dark:bg-[#141412] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
+                  ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20"
+                  : "bg-white dark:bg-[#1c1c18] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
               }`}
             >
               <span>💖</span>
@@ -375,10 +383,10 @@ function Account() {
             <button
               type="button"
               onClick={() => setActiveTab("commented-posts")}
-              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                 activeTab === "commented-posts"
-                  ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20"
-                  : "bg-white dark:bg-[#141412] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
+                  ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20"
+                  : "bg-white dark:bg-[#1c1c18] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
               }`}
             >
               <span>💬</span>
@@ -393,10 +401,10 @@ function Account() {
             <button
               type="button"
               onClick={() => setActiveTab("settings")}
-              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                 activeTab === "settings"
-                  ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20"
-                  : "bg-white dark:bg-[#141412] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
+                  ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20"
+                  : "bg-white dark:bg-[#1c1c18] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10"
               }`}
             >
               <span>⚙️</span>
@@ -408,8 +416,8 @@ function Account() {
         {/* TWO-COLUMN SIDEBAR + CONTENT LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* LEFT SIDEBAR NAVIGATION */}
-          <aside className="hidden lg:block lg:col-span-4 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm lg:sticky lg:top-28">
-            <div className="mb-4 pb-3 border-b border-neutral-100 dark:border-white/5 px-3">
+          <aside className="hidden lg:block lg:col-span-4 bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-5 shadow-sm lg:sticky lg:top-28">
+            <div className="mb-4 pb-3 border-b border-neutral-100 dark:border-white/10 px-3">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C9A96E]">
                 Kitchen Hub
               </span>
@@ -418,15 +426,13 @@ function Account() {
               </h2>
             </div>
 
-            {/* Navigation Buttons */}
             <nav className="flex flex-col gap-1.5 font-sans">
-              {/* My Published Recipes */}
               <button
                 type="button"
                 onClick={() => setActiveTab("my-posts")}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                   activeTab === "my-posts"
-                    ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20 font-extrabold"
+                    ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20 font-extrabold"
                     : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5"
                 }`}
               >
@@ -437,7 +443,7 @@ function Account() {
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded-full ${
                     activeTab === "my-posts"
-                      ? "bg-[#121210]/15 text-[#121210]"
+                      ? "bg-[#141412]/15 text-[#141412]"
                       : "bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300"
                   }`}
                 >
@@ -445,13 +451,12 @@ function Account() {
                 </span>
               </button>
 
-              {/* Saved Recipes (The feature requested by the user!) */}
               <button
                 type="button"
                 onClick={() => setActiveTab("saved-recipes")}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                   activeTab === "saved-recipes"
-                    ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20 font-extrabold"
+                    ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20 font-extrabold"
                     : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5"
                 }`}
               >
@@ -462,7 +467,7 @@ function Account() {
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded-full ${
                     activeTab === "saved-recipes"
-                      ? "bg-[#121210]/15 text-[#121210]"
+                      ? "bg-[#141412]/15 text-[#141412]"
                       : "bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300"
                   }`}
                 >
@@ -470,13 +475,12 @@ function Account() {
                 </span>
               </button>
 
-              {/* Commented Discussions */}
               <button
                 type="button"
                 onClick={() => setActiveTab("commented-posts")}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                   activeTab === "commented-posts"
-                    ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20 font-extrabold"
+                    ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20 font-extrabold"
                     : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5"
                 }`}
               >
@@ -487,7 +491,7 @@ function Account() {
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded-full ${
                     activeTab === "commented-posts"
-                      ? "bg-[#121210]/15 text-[#121210]"
+                      ? "bg-[#141412]/15 text-[#141412]"
                       : "bg-neutral-200/70 dark:bg-white/10 text-neutral-600 dark:text-neutral-300"
                   }`}
                 >
@@ -495,13 +499,12 @@ function Account() {
                 </span>
               </button>
 
-              {/* Account & Preferences */}
               <button
                 type="button"
                 onClick={() => setActiveTab("settings")}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                   activeTab === "settings"
-                    ? "bg-[#C9A96E] text-[#121210] shadow-md shadow-[#C9A96E]/20 font-extrabold"
+                    ? "bg-[#C9A96E] text-[#141412] shadow-md shadow-[#C9A96E]/20 font-extrabold"
                     : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5"
                 }`}
               >
@@ -511,23 +514,21 @@ function Account() {
                 </div>
               </button>
 
-              {/* Direct Post Creator CTA */}
-              <div className="pt-3 mt-2 border-t border-neutral-100 dark:border-white/5">
+              <div className="pt-3 mt-2 border-t border-neutral-100 dark:border-white/10">
                 <Link
                   to="/create-post"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold uppercase tracking-wider hover:bg-[#C9A96E] dark:hover:bg-[#E7CA8D] dark:hover:text-black transition-all shadow-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold uppercase tracking-wider hover:bg-[#C9A96E] dark:hover:bg-[#E7CA8D] dark:hover:text-black transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                 >
                   <span>+</span>
                   <span>Share a Recipe</span>
                 </Link>
               </div>
 
-              {/* Logout Option */}
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                 >
                   <span>🚪</span>
                   <span>Sign Out</span>
@@ -538,7 +539,6 @@ function Account() {
 
           {/* RIGHT MAIN CONTENT PANEL */}
           <main className="lg:col-span-8 flex flex-col gap-6">
-            {/* Action feedback notification */}
             {actionFeedback && (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
                 <span>{actionFeedback}</span>
@@ -547,8 +547,11 @@ function Account() {
 
             {/* VIEW 1: MY PUBLISHED POSTS */}
             {activeTab === "my-posts" && (
-              <div ref={myPostsRef} className="scroll-mt-28 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-100 dark:border-white/5">
+              <div
+                ref={myPostsRef}
+                className="scroll-mt-28 bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in"
+              >
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-100 dark:border-white/10">
                   <div>
                     <h3 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white">
                       My Published Recipes
@@ -560,36 +563,46 @@ function Account() {
                   </div>
                   <Link
                     to="/create-post"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#C9A96E] text-[#121210] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#C9A96E] text-[#141412] font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                   >
                     <span>+</span> Create New Recipe
                   </Link>
                 </div>
 
                 {myPostsLoading ? (
-                  <div className="text-center py-20 text-neutral-400 font-serif italic animate-pulse">
-                    Loading your kitchen catalog...
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                      <RecipeCardSkeleton key={`my-skeleton-${idx}`} />
+                    ))}
                   </div>
                 ) : myPostsError ? (
-                  <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
-                    {myPostsError}
+                  <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center justify-between gap-4">
+                    <span>{myPostsError}</span>
+                    <button
+                      type="button"
+                      onClick={() => fetchMyPosts(myPostsPage)}
+                      className="px-4 py-1.5 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider"
+                    >
+                      Retry
+                    </button>
                   </div>
                 ) : myPostsTotal === 0 ? (
-                  <div className="text-center py-20 px-6 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
-                    <span className="text-5xl block mb-4">🍳</span>
+                  <div className="text-center py-16 px-6 bg-neutral-50 dark:bg-[#141412] border border-dashed border-neutral-200 dark:border-white/15 rounded-3xl">
+                    <div className="w-16 h-16 rounded-2xl bg-[#C9A96E]/15 border border-[#C9A96E]/30 text-[#C9A96E] flex items-center justify-center text-3xl mx-auto mb-4">
+                      🍳
+                    </div>
                     <h4 className="font-serif text-xl font-bold text-neutral-900 dark:text-white mb-2">
                       You haven&apos;t shared any recipes yet
                     </h4>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 font-light">
-                      Got a grandmother’s secret pasta, a 15-minute quick lunch,
-                      or a signature baking technique? Share it with fellow food
-                      bloggers!
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 leading-relaxed">
+                      Got a family recipe, a 15-minute lunch, or a signature
+                      dessert? Publish it to build your culinary profile.
                     </p>
                     <Link
                       to="/create-post"
-                      className="px-6 py-3 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black font-bold text-xs uppercase tracking-wider hover:bg-[#C9A96E] dark:hover:bg-[#C9A96E] transition-all"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#C9A96E] text-[#141412] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                     >
-                      Publish Your First Recipe
+                      <span>+</span> Publish Your First Recipe
                     </Link>
                   </div>
                 ) : (
@@ -619,8 +632,11 @@ function Account() {
 
             {/* VIEW 2: SAVED & BOOKMARKED RECIPES */}
             {activeTab === "saved-recipes" && (
-              <div ref={savedPostsRef} className="scroll-mt-28 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-100 dark:border-white/5">
+              <div
+                ref={savedPostsRef}
+                className="scroll-mt-28 bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in"
+              >
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-100 dark:border-white/10">
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white">
@@ -631,38 +647,49 @@ function Account() {
                       </span>
                     </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                      Recipes you’ve liked or bookmarked, all in one place.
+                      Recipes you&apos;ve liked or bookmarked, all in one place.
                     </p>
                   </div>
                   <Link
-                    to="/"
-                    className="text-xs font-bold uppercase tracking-wider text-[#C9A96E] hover:underline"
+                    to="/recipes"
+                    className="text-xs font-bold uppercase tracking-wider text-[#C9A96E] hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                   >
                     Explore More Recipes →
                   </Link>
                 </div>
 
                 {savedLoading ? (
-                  <div className="text-center py-20 text-neutral-400 font-serif italic animate-pulse">
-                    Retrieving your saved cookbook...
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                      <RecipeCardSkeleton key={`saved-skeleton-${idx}`} />
+                    ))}
                   </div>
                 ) : savedError ? (
-                  <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
-                    {savedError}
+                  <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center justify-between gap-4">
+                    <span>{savedError}</span>
+                    <button
+                      type="button"
+                      onClick={() => fetchSavedPosts(savedPage)}
+                      className="px-4 py-1.5 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider"
+                    >
+                      Retry
+                    </button>
                   </div>
                 ) : savedTotal === 0 ? (
-                  <div className="text-center py-20 px-6 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
-                    <span className="text-5xl block mb-4">💖</span>
+                  <div className="text-center py-16 px-6 bg-neutral-50 dark:bg-[#141412] border border-dashed border-neutral-200 dark:border-white/15 rounded-3xl">
+                    <div className="w-16 h-16 rounded-2xl bg-[#C9A96E]/15 border border-[#C9A96E]/30 text-[#C9A96E] flex items-center justify-center text-3xl mx-auto mb-4">
+                      💖
+                    </div>
                     <h4 className="font-serif text-xl font-bold text-neutral-900 dark:text-white mb-2">
-                      No saved recipes yet
+                      Your saved cookbook is empty
                     </h4>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 font-light">
-                      Like a recipe or bookmark it to keep it here for your next
-                      cooking session.
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 leading-relaxed">
+                      Tap the heart icon on any recipe card to save dishes here
+                      for quick access when you&apos;re ready to cook.
                     </p>
                     <Link
-                      to="/"
-                      className="px-6 py-3 rounded-full bg-[#C9A96E] text-[#121210] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-sm"
+                      to="/recipes"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#C9A96E] text-[#141412] font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                     >
                       Explore Community Recipes
                     </Link>
@@ -687,8 +714,11 @@ function Account() {
 
             {/* VIEW 3: COMMENTED DISCUSSIONS */}
             {activeTab === "commented-posts" && (
-              <div ref={commentedPostsRef} className="scroll-mt-28 bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in">
-                <div className="mb-8 pb-4 border-b border-neutral-100 dark:border-white/5">
+              <div
+                ref={commentedPostsRef}
+                className="scroll-mt-28 bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in"
+              >
+                <div className="mb-8 pb-4 border-b border-neutral-100 dark:border-white/10">
                   <h3 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white">
                     Community Discussions &amp; Notes
                   </h3>
@@ -698,26 +728,37 @@ function Account() {
                 </div>
 
                 {commentedLoading ? (
-                  <div className="text-center py-20 text-neutral-400 font-serif italic animate-pulse">
-                    Loading your discussion history...
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                      <RecipeCardSkeleton key={`commented-skeleton-${idx}`} />
+                    ))}
                   </div>
                 ) : commentedError ? (
-                  <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
-                    {commentedError}
+                  <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center justify-between gap-4">
+                    <span>{commentedError}</span>
+                    <button
+                      type="button"
+                      onClick={() => fetchCommentedPosts(commentedPage)}
+                      className="px-4 py-1.5 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider"
+                    >
+                      Retry
+                    </button>
                   </div>
                 ) : commentedTotal === 0 ? (
-                  <div className="text-center py-20 px-6 border border-dashed border-neutral-200 dark:border-white/10 rounded-3xl">
-                    <span className="text-5xl block mb-4">💬</span>
+                  <div className="text-center py-16 px-6 bg-neutral-50 dark:bg-[#141412] border border-dashed border-neutral-200 dark:border-white/15 rounded-3xl">
+                    <div className="w-16 h-16 rounded-2xl bg-[#C9A96E]/15 border border-[#C9A96E]/30 text-[#C9A96E] flex items-center justify-center text-3xl mx-auto mb-4">
+                      💬
+                    </div>
                     <h4 className="font-serif text-xl font-bold text-neutral-900 dark:text-white mb-2">
                       No commented recipes yet
                     </h4>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 font-light">
-                      Try leaving a question or sharing your cooking experience
-                      on any recipe page to join the community discussion!
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto mb-6 leading-relaxed">
+                      Leave a tip, question, or review on any recipe page to
+                      join the community discussion.
                     </p>
                     <Link
-                      to="/"
-                      className="px-6 py-3 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black font-bold text-xs uppercase tracking-wider hover:opacity-80 transition-all"
+                      to="/recipes"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-neutral-900 text-white dark:bg-[#C9A96E] dark:text-[#141412] font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                     >
                       Browse Recipe Feed
                     </Link>
@@ -743,7 +784,7 @@ function Account() {
 
             {/* VIEW 4: SETTINGS & APPEARANCE */}
             {activeTab === "settings" && (
-              <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in flex flex-col gap-8">
+              <div className="bg-white dark:bg-[#1c1c18] border border-neutral-200/80 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm animate-fade-in flex flex-col gap-8">
                 <div>
                   <h3 className="font-serif text-2xl font-bold text-neutral-900 dark:text-white">
                     Account Settings &amp; Preferences
@@ -782,7 +823,7 @@ function Account() {
                           fullName: e.target.value,
                         }))
                       }
-                      className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 outline-none focus:border-[#C9A96E] dark:border-white/10 dark:bg-white/5 dark:text-white"
+                      className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 outline-none focus:border-[#C9A96E] dark:border-white/10 dark:bg-[#141412] dark:text-white"
                     />
                     <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
                       Your full name is shown publicly and can be the same as
@@ -794,7 +835,7 @@ function Account() {
                     <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
                       Username
                     </label>
-                    <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 dark:border-white/10 dark:bg-white/5 focus-within:border-[#C9A96E]">
+                    <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 dark:border-white/10 dark:bg-[#141412] focus-within:border-[#C9A96E]">
                       <span className="text-sm text-neutral-400">@</span>
                       <input
                         type="text"
@@ -820,8 +861,7 @@ function Account() {
                     </div>
                     <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
                       Your unique profile handle. Use 2–24 letters, numbers, or
-                      underscores with no spaces; usernames are unique
-                      regardless of capitalization.
+                      underscores with no spaces.
                     </p>
                   </div>
 
@@ -833,7 +873,7 @@ function Account() {
                       type="email"
                       readOnly
                       value={user?.email || ""}
-                      className="w-full bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-sm text-neutral-400 cursor-not-allowed"
+                      className="w-full bg-neutral-100 dark:bg-[#141412]/60 border border-neutral-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-sm text-neutral-400 cursor-not-allowed"
                     />
                   </div>
 
@@ -841,7 +881,7 @@ function Account() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-6 py-2.5 rounded-full bg-[#C9A96E] text-[#121210] font-bold text-xs uppercase tracking-wider hover:brightness-110 disabled:opacity-50 transition-all shadow-sm"
+                      className="px-6 py-2.5 rounded-full bg-[#C9A96E] text-[#141412] font-bold text-xs uppercase tracking-wider hover:brightness-110 disabled:opacity-50 transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
                     >
                       {saving ? "Saving..." : "Save Profile Changes"}
                     </button>
@@ -849,11 +889,11 @@ function Account() {
                 </form>
 
                 {/* Appearance / Theme Selector */}
-                <div className="pt-6 border-t border-neutral-100 dark:border-white/5">
+                <div className="pt-6 border-t border-neutral-100 dark:border-white/10">
                   <h4 className="font-serif text-lg font-bold text-neutral-900 dark:text-white mb-2">
                     Interface Appearance
                   </h4>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4 font-light">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
                     Select your preferred aesthetic mode for browsing recipes.
                   </p>
                   <div className="grid grid-cols-3 gap-3">
@@ -866,7 +906,7 @@ function Account() {
                         key={t.val}
                         type="button"
                         onClick={() => setTheme(t.val)}
-                        className={`p-3.5 rounded-2xl border text-xs font-bold uppercase tracking-wider flex flex-col items-center gap-2 transition-all ${
+                        className={`p-3.5 rounded-2xl border text-xs font-bold uppercase tracking-wider flex flex-col items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E] ${
                           theme === t.val
                             ? "bg-[#C9A96E]/20 border-[#C9A96E] text-[#C9A96E] shadow-sm"
                             : "border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300"
@@ -880,19 +920,19 @@ function Account() {
                 </div>
 
                 {/* Account Session / Sign Out */}
-                <div className="pt-6 border-t border-neutral-100 dark:border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="pt-6 border-t border-neutral-100 dark:border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h4 className="font-serif text-lg font-bold text-neutral-900 dark:text-white mb-1">
                       Account Session
                     </h4>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 font-light">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       Sign out of your active session on this device.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                   >
                     <span>🚪</span>
                     <span>Sign Out</span>
@@ -906,7 +946,7 @@ function Account() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full max-w-xs flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-red-500/25 bg-red-500/5 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider hover:bg-red-500/10 active:scale-[0.98] transition-all"
+                className="w-full max-w-xs flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-red-500/25 bg-red-500/5 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider hover:bg-red-500/10 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
               >
                 <span>🚪</span>
                 <span>Sign Out of Account</span>
@@ -930,11 +970,11 @@ function Account() {
       {/* Delete Confirmation Modal */}
       {deletingPost && (
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-9999 flex items-center justify-center p-4"
           onClick={() => !isDeleting && setDeletingPost(null)}
         >
           <div
-            className="bg-white dark:bg-[#161614] text-neutral-900 dark:text-white rounded-3xl w-full max-w-md p-6 sm:p-8 border border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col gap-5 animate-fade-in"
+            className="bg-white dark:bg-[#1c1c18] text-neutral-900 dark:text-white rounded-3xl w-full max-w-md p-6 sm:p-8 border border-neutral-200 dark:border-white/10 shadow-2xl flex flex-col gap-5 animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-4">
@@ -965,7 +1005,7 @@ function Account() {
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setDeletingPost(null)}
-                className="px-5 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                className="px-5 py-2.5 rounded-full border border-neutral-300 dark:border-white/15 text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
               >
                 Cancel
               </button>
@@ -973,7 +1013,7 @@ function Account() {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleConfirmDelete}
-                className="px-5 py-2.5 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="px-5 py-2.5 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
               >
                 {isDeleting ? "Deleting..." : "Yes, Delete Recipe"}
               </button>
@@ -987,15 +1027,18 @@ function Account() {
 
 function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
   return (
-    <div className="bg-white dark:bg-[#161614] border border-neutral-200/80 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col group">
-      <Link to={`/recipe/${post.slug}`} className="flex flex-col flex-1">
-        <div className="h-44 w-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative">
+    <div className="bg-white dark:bg-[#141412] border border-neutral-200/80 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col group">
+      <Link
+        to={`/recipe/${post.slug}`}
+        className="flex flex-col flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#C9A96E]"
+      >
+        <div className="h-44 w-full bg-neutral-100 dark:bg-[#1c1c18] overflow-hidden relative">
           <img
             src={
               post.image ||
               "https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=800&q=80"
             }
-            alt={post.title}
+            alt={post.title ? `${post.title} dish` : "Published recipe"}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               e.currentTarget.src =
@@ -1003,19 +1046,19 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
             }}
           />
           {post.category && (
-            <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">
+            <span className="absolute top-3 left-3 bg-[#141412]/80 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">
               {post.category}
             </span>
           )}
           {(post.savedCount !== undefined || post.likesCount !== undefined) && (
             <div className="absolute top-3 right-3 flex items-center gap-1.5">
               {post.likesCount !== undefined && (
-                <span className="bg-black/70 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                <span className="bg-[#141412]/85 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                   ❤️ {post.likesCount}
                 </span>
               )}
               {post.savedCount !== undefined && (
-                <span className="bg-black/70 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                <span className="bg-[#141412]/85 backdrop-blur-md text-[#E7CA8D] border border-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                   🔖 {post.savedCount}
                 </span>
               )}
@@ -1027,11 +1070,11 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
           <h4 className="font-serif text-base sm:text-lg font-bold text-neutral-900 dark:text-white mb-2 leading-snug group-hover:text-[#C9A96E] transition-colors">
             {post.title}
           </h4>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3 sm:mb-4 line-clamp-2 flex-1 font-light">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3 sm:mb-4 line-clamp-2 flex-1">
             {post.description}
           </p>
-          <div className="text-[11px] text-neutral-400 flex flex-wrap items-center justify-between gap-1 uppercase tracking-wider font-semibold pt-3 border-t border-neutral-100 dark:border-white/5">
-            <span className="truncate max-w-[110px]">
+          <div className="text-[11px] text-neutral-400 flex flex-wrap items-center justify-between gap-1 uppercase tracking-wider font-semibold pt-3 border-t border-neutral-100 dark:border-white/10">
+            <span className="truncate max-w-27.5">
               By {post.authorName || "Chef"}
             </span>
             <span className="inline-flex flex-wrap items-center gap-x-2 text-amber-600 dark:text-amber-400 font-bold lowercase">
@@ -1048,7 +1091,7 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
       </Link>
 
       {isOwnPost && (
-        <div className="flex gap-2 px-4 py-3 border-t border-neutral-100 dark:border-white/5 bg-neutral-50 dark:bg-[#121210] justify-end">
+        <div className="flex gap-2 px-4 py-3 border-t border-neutral-100 dark:border-white/10 bg-neutral-50 dark:bg-[#1c1c18] justify-end">
           <button
             type="button"
             onClick={(e) => {
@@ -1056,7 +1099,7 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
               e.stopPropagation();
               if (onEdit) onEdit(post);
             }}
-            className="px-3.5 py-2 sm:py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-xs font-semibold hover:border-[#C9A96E] transition-colors min-h-[38px] sm:min-h-0 flex items-center gap-1"
+            className="px-3.5 py-2 sm:py-1.5 rounded-lg border border-neutral-200 dark:border-white/15 bg-white dark:bg-[#141412] text-neutral-900 dark:text-white text-xs font-semibold hover:border-[#C9A96E] transition-colors min-h-9.5 sm:min-h-0 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A96E]"
           >
             ✏️ Edit
           </button>
@@ -1067,7 +1110,7 @@ function RecipePostCard({ post, isOwnPost, onEdit, onDelete }) {
               e.stopPropagation();
               if (onDelete) onDelete(post);
             }}
-            className="px-3.5 py-2 sm:py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors min-h-[38px] sm:min-h-0 flex items-center gap-1"
+            className="px-3.5 py-2 sm:py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors min-h-9.5 sm:min-h-0 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
           >
             🗑️ Delete
           </button>

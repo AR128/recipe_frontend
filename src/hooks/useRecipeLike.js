@@ -2,15 +2,19 @@ import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../context/useAuth";
 import { toggleRecipeLikeInDb } from "../api/recipeApi";
+import { useToast } from "../components/Toast";
 
 export default function useRecipeLike(recipe) {
   const { accessToken, token } = useAuth();
   const authToken = accessToken || token;
   const navigate = useNavigate();
   const location = useLocation();
+  const showToast = useToast();
+
   const [likeOverride, setLikeOverride] = useState(null);
   const [likeLoading, setLikeLoading] = useState(false);
   const requestPending = useRef(false);
+
   const slug = recipe?.slug;
   const isLiked =
     slug && likeOverride?.slug === slug
@@ -24,6 +28,7 @@ export default function useRecipeLike(recipe) {
   const toggleLike = async () => {
     if (!slug) return;
     if (!authToken) {
+      showToast("Sign in to like recipes", "info");
       navigate("/get-started", { state: { from: location } });
       return;
     }
@@ -46,8 +51,14 @@ export default function useRecipeLike(recipe) {
         liked: result.liked,
         likesCount: result.likesCount,
       });
+      showToast(
+        result.liked ? "Added to liked recipes" : "Removed like",
+        "success",
+        2500
+      );
     } catch {
       setLikeOverride(previousState);
+      showToast("Couldn't update like. Please try again.", "error");
     } finally {
       requestPending.current = false;
       setLikeLoading(false);
