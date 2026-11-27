@@ -78,8 +78,6 @@ function Account() {
   const [myPosts, setMyPosts] = useState([]);
   const [myPostsLoading, setMyPostsLoading] = useState(true);
   const [myPostsError, setMyPostsError] = useState("");
-  const [totalSavesReceived, setTotalSavesReceived] = useState(0);
-  const [totalLikesReceived, setTotalLikesReceived] = useState(0);
   const [myPostsPage, setMyPostsPage] = useState(1);
   const [myPostsPages, setMyPostsPages] = useState(1);
   const [myPostsTotal, setMyPostsTotal] = useState(0);
@@ -88,6 +86,7 @@ function Account() {
   const [savedPosts, setSavedPosts] = useState([]);
   const [savedLoading, setSavedLoading] = useState(true);
   const [savedError, setSavedError] = useState("");
+  const [likedPostsTotal, setLikedPostsTotal] = useState(0);
   const [savedPage, setSavedPage] = useState(1);
   const [savedPages, setSavedPages] = useState(1);
   const [savedTotal, setSavedTotal] = useState(0);
@@ -126,8 +125,6 @@ function Account() {
       .get(`/my-posts?page=${page}`)
       .then((res) => {
         setMyPosts(res.data.recipes || []);
-        setTotalSavesReceived(res.data.totalSavesReceived || 0);
-        setTotalLikesReceived(res.data.totalLikesReceived || 0);
         setMyPostsTotal(res.data.total || 0);
         setMyPostsPages(res.data.pages || 1);
       })
@@ -145,14 +142,17 @@ function Account() {
           const res = await getSavedRecipesFromDb(authToken, page);
           setSavedPosts(res.recipes || []);
           setSavedTotal(res.total || 0);
+          setLikedPostsTotal(res.likedTotal || 0);
           setSavedPages(res.pages || 1);
         } catch (err) {
           console.error("Failed to load saved recipes from MongoDB:", err);
           setSavedPosts([]);
+          setLikedPostsTotal(0);
           setSavedError("Unable to load saved recipes right now.");
         }
       } else {
         setSavedPosts([]);
+        setLikedPostsTotal(0);
       }
       setSavedLoading(false);
     },
@@ -316,10 +316,10 @@ function Account() {
             </div>
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
               <span className="font-serif text-xl sm:text-2xl font-bold text-[#C9A96E] block">
-                {totalLikesReceived}
+                {likedPostsTotal}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                Post Likes
+                Posts Liked
               </span>
             </div>
             <div className="text-center p-2 rounded-xl bg-neutral-50 dark:bg-white/5 md:bg-transparent md:p-0">
