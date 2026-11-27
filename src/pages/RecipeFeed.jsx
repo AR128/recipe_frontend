@@ -236,64 +236,6 @@ export default function RecipeFeed() {
           </section>
         )}
 
-        {/* 6. HOW THE COMMUNITY WORKS */}
-        <section
-          id="how-it-works"
-          className="p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/5 via-neutral-100 to-neutral-200/50 dark:from-[#181715] dark:via-[#131210] dark:to-[#1a1815] border border-amber-500/20 dark:border-amber-500/10 shadow-lg mb-12 scroll-mt-28"
-        >
-          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-neutral-900 dark:text-white mb-2 sm:mb-3">
-              How Poodiest Works
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-light leading-relaxed">
-              We are an open food blogging platform built for real home cooks.
-              Anyone can contribute family recipes and discover culinary
-              techniques.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161614] border border-neutral-200/80 dark:border-white/10 flex flex-col items-center text-center shadow-sm">
-              <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#C9A96E]/20 text-[#C9A96E] flex items-center justify-center text-lg sm:text-xl font-bold mb-3 sm:mb-4">
-                ✍️
-              </span>
-              <h3 className="font-serif text-base sm:text-lg font-bold mb-1.5 sm:mb-2">
-                1. Share Your Recipes
-              </h3>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">
-                Publish your secret family dishes, cooking times, yields, and
-                step-by-step instructions with photos.
-              </p>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161614] border border-neutral-200/80 dark:border-white/10 flex flex-col items-center text-center shadow-sm">
-              <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#C9A96E]/20 text-[#C9A96E] flex items-center justify-center text-lg sm:text-xl font-bold mb-3 sm:mb-4">
-                ❤️
-              </span>
-              <h3 className="font-serif text-base sm:text-lg font-bold mb-1.5 sm:mb-2">
-                2. Bookmark &amp; Save
-              </h3>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">
-                Click the heart on any recipe you love to save it to your
-                profile. The most saved recipes rise to Top Trending!
-              </p>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161614] border border-neutral-200/80 dark:border-white/10 flex flex-col items-center text-center shadow-sm">
-              <span className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#C9A96E]/20 text-[#C9A96E] flex items-center justify-center text-lg sm:text-xl font-bold mb-3 sm:mb-4">
-                💬
-              </span>
-              <h3 className="font-serif text-base sm:text-lg font-bold mb-1.5 sm:mb-2">
-                3. Discuss &amp; Review
-              </h3>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-light leading-relaxed">
-                Leave cooking notes, tips, and recipe questions directly in the
-                comments section to connect with other foodies.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* 5. COMMUNITY FOOD BLOGGERS */}
         {featuredChefs.length > 0 && (
           <section id="creators" className="mb-16 sm:mb-24 scroll-mt-28">
