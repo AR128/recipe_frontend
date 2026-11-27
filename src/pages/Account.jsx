@@ -670,7 +670,11 @@ function Account() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {savedPosts.map((post) => (
-                      <RecipeCard key={post._id || post.slug} recipe={post} />
+                      <RecipeCard
+                        key={post._id || post.slug}
+                        recipe={post}
+                        onSaveChange={() => void fetchSavedPosts(savedPage)}
+                      />
                     ))}
                   </div>
                 )}

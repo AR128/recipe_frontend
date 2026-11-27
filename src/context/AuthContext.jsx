@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccess = async () => {
     const firebaseUser = auth.currentUser;
-    if (!firebaseUser) return false;
+    if (!firebaseUser) return { allowed: false, code: "NO_SESSION" };
 
     const idToken = await firebaseUser.getIdToken();
     setAuthToken(idToken);
@@ -112,9 +112,11 @@ export const AuthProvider = ({ children }) => {
       setAccessToken(idToken);
       setUser({ ...response.data.user, uid: firebaseUser.uid });
       setAccessRestriction(null);
-      return true;
+      return { allowed: true };
     } catch (error) {
-      if (applyAccessError(error)) return false;
+      if (applyAccessError(error)) {
+        return { allowed: false, code: error.response?.data?.code };
+      }
       throw error;
     }
   };

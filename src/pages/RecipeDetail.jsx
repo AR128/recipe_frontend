@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { getRecipe } from "../api/recipeApi";
 import CommentSection from "../components/CommentSection";
 import useRecipeLike from "../hooks/useRecipeLike";
+import useRecipeSave from "../hooks/useRecipeSave";
 import { useAuth } from "../context/useAuth";
 
 export default function RecipeDetail() {
@@ -17,6 +18,8 @@ export default function RecipeDetail() {
   const [copied, setCopied] = useState(false);
   const { isLiked, likesCount, likeLoading, toggleLike } =
     useRecipeLike(recipe);
+  const { isBookmarked, saveLoading, saveError, toggleSave } =
+    useRecipeSave(recipe);
 
   useEffect(() => {
     if (!slug || authLoading) return undefined;
@@ -167,6 +170,36 @@ export default function RecipeDetail() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={toggleSave}
+              disabled={saveLoading}
+              aria-label={isBookmarked ? "Remove saved recipe" : "Save recipe"}
+              title={
+                saveError ||
+                (isBookmarked ? "Remove from saved recipes" : "Save recipe")
+              }
+              className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1.5 sm:gap-2 transition-all disabled:opacity-60 ${
+                isBookmarked
+                  ? "bg-[#C9A96E] text-[#121210] border border-[#C9A96E]"
+                  : "bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:border-[#C9A96E]"
+              }`}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill={isBookmarked ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z" />
+              </svg>
+              <span className="hidden sm:inline">
+                {isBookmarked ? "Saved" : "Save"}
+              </span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleShare}
               className="text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:border-[#C9A96E] flex items-center gap-1.5 sm:gap-2 transition-colors"
             >
@@ -214,6 +247,11 @@ export default function RecipeDetail() {
               </span>
             </button>
           </div>
+          {saveError && (
+            <p role="alert" className="absolute top-16 right-4 text-xs text-red-200">
+              {saveError}
+            </p>
+          )}
         </div>
 
         {/* Bottom overlay — category pill + title + description + saves */}

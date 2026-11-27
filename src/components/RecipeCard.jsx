@@ -1,17 +1,27 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
 import useRecipeLike from "../hooks/useRecipeLike";
+import useRecipeSave from "../hooks/useRecipeSave";
 
-export default function RecipeCard({ recipe }) {
+export default function RecipeCard({ recipe, onSaveChange }) {
   const { slug, title, image, authorName, category, cookTime, prepTime } =
     recipe || {};
   const { isLiked, likesCount, likeLoading, toggleLike } =
     useRecipeLike(recipe);
+  const { isBookmarked, saveLoading, saveError, toggleSave } =
+    useRecipeSave(recipe);
 
   const handleToggleLike = (e) => {
     e.preventDefault();
     e.stopPropagation();
     toggleLike();
+  };
+
+  const handleToggleSave = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const result = await toggleSave();
+    if (result) onSaveChange?.(result);
   };
 
   // Calculate total time safely from real MongoDB fields
@@ -76,6 +86,40 @@ export default function RecipeCard({ recipe }) {
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
+
+        <button
+          type="button"
+          onClick={handleToggleSave}
+          aria-label={isBookmarked ? "Remove saved recipe" : "Save recipe"}
+          title={
+            saveError ||
+            (isBookmarked ? "Remove from saved recipes" : "Save recipe")
+          }
+          disabled={saveLoading}
+          className={`absolute top-3 right-14 w-8 h-8 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center hover:scale-110 active:scale-90 transition-all disabled:opacity-60 ${
+            isBookmarked ? "bg-[#C9A96E] text-[#121210]" : "bg-black/50 text-white"
+          }`}
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill={isBookmarked ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z" />
+          </svg>
+        </button>
+
+        {saveError && (
+          <span
+            role="alert"
+            className="absolute top-12 right-3 rounded bg-red-700 px-2 py-1 text-[10px] text-white"
+          >
+            {saveError}
+          </span>
+        )}
 
         {/* Bottom Time Pill (From real MongoDB record) */}
         {totalTime && (

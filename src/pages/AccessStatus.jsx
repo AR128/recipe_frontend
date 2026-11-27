@@ -52,9 +52,26 @@ export default function AccessStatus() {
   const handleCheck = async () => {
     setChecking(true);
     setError("");
+    setMessage("");
     try {
-      const allowed = await refreshAccess();
-      if (allowed) window.location.assign("/");
+      const result = await refreshAccess();
+      if (result.allowed) {
+        window.location.assign("/");
+        return;
+      }
+
+      const messages = {
+        ACCESS_REQUEST_PENDING:
+          "Your request is still under review. Please check again later.",
+        ACCESS_REQUEST_DENIED:
+          "Your request was reviewed and access was not approved. You can request access again below.",
+        ACCOUNT_REMOVED:
+          "Your account is still removed. You can request access again below.",
+      };
+      setMessage(
+        messages[result.code] ||
+          "We couldn't find an active sign-in session. Please sign in again."
+      );
     } catch {
       setError("We couldn't check your access right now. Please try again.");
     } finally {
